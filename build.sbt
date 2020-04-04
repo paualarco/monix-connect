@@ -38,3 +38,12 @@ lazy val dynamoDB = (project in file("dynamodb"))
   )
   .enablePlugins(JavaAppPackaging, DockerPlugin)
   .dependsOn(common)
+
+lazy val grpc = (project in file("grpc"))
+  .configs(IntegrationTest)
+  .settings(Defaults.itSettings)
+  .settings(
+    name := "monix-grpc",
+    libraryDependencies ++= Dependencies.DynamoDb,
+    version := "0.0.1"
+  )

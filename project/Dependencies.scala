@@ -56,4 +56,10 @@ object Dependencies {
 
   val DynamoDb = DynamoDbDependencies ++ TestDependencies.map(_ % Test) ++ TestDependencies.map(_ % IntegrationTest)
 
+  private val GrpcDependencies = Seq(
+    "io.monix" %% "monix-reactive" % DependencyVersions.Monix,
+  )
+
+  val Grpc = GrpcDependencies ++ TestDependencies.map(_ % Test) ++ TestDependencies.map(_ % IntegrationTest)
+
 }
