@@ -58,6 +58,10 @@ object Dependencies {
 
   private val GrpcDependencies = Seq(
     "io.monix" %% "monix-reactive" % DependencyVersions.Monix,
+    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+    "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion,
+    "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
+    "com.thesamet.scalapb" %% "compilerplugin" % "0.10.1"
   )
 
   val Grpc = GrpcDependencies ++ TestDependencies.map(_ % Test) ++ TestDependencies.map(_ % IntegrationTest)

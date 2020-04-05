@@ -2,7 +2,7 @@ lazy val root = (project in file("."))
   .settings(
     inThisBuild(List(
       organization := "com.scalarc",
-      scalaVersion := "2.13.1",
+      scalaVersion := "2.12.8",
       version      := Version.version
     )),
     name := "monix-connectors"
@@ -44,6 +44,6 @@ lazy val grpc = (project in file("grpc"))
   .settings(Defaults.itSettings)
   .settings(
     name := "monix-grpc",
-    libraryDependencies ++= Dependencies.DynamoDb,
+    libraryDependencies ++= Dependencies.Grpc,
     version := "0.0.1"
   )

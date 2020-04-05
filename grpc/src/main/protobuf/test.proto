@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package scalona.monix.connectors.grpc.protobuf;
+
+//Master slave service definition
+service GrpcProtocol {
+  rpc join (JoinRequest) returns (JoinReply) {}
+}
+
+//protocol
+message JoinRequest {
+  string id       = 1;
+}
+
+message JoinReply {
+  string id          = 1;
+  bool authenticated = 2;
+}
