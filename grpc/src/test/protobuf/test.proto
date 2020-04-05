@@ -5,6 +5,10 @@ package scalona.monix.connectors.grpc.protobuf;
 //Master slave service definition
 service GrpcProtocol {
   rpc join (JoinRequest) returns (JoinReply) {}
+  rpc serverStream (JoinRequest) returns (stream JoinReply) {}
+  rpc clientStream (stream JoinRequest) returns (JoinReply) {}
+  rpc bidiStream (stream JoinRequest) returns (stream JoinReply) {}
+
 }
 
 //protocol

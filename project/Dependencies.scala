@@ -30,7 +30,7 @@ object Dependencies {
   )
 
   private val CommonMain = Seq(
-    "io.monix" %% "monix-reactive"          % DependencyVersions.Monix,
+    "io.monix" %% "monix-reactive"          % DependencyVersions.Monix
   )
 
   val Common = CommonMain ++ TestDependencies.map(_ % Test)
