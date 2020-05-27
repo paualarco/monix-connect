@@ -113,7 +113,7 @@ def mimaSettings(projectName: String) = Seq(
 mimaFailOnNoPrevious in ThisBuild := false
 
 lazy val unidocSettings = Seq(
-  //unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(akka, dynamodb, hdfs, s3, redis),
+  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(akka, dynamodb, hdfs, s3, redis),
   scalacOptions in (ScalaUnidoc, unidoc) +=
     "-Xfatal-warnings",
   scalacOptions in (ScalaUnidoc, unidoc) --=
@@ -121,7 +121,7 @@ lazy val unidocSettings = Seq(
   scalacOptions in (ScalaUnidoc, unidoc) ++=
     Opts.doc.title(s"Monix Connect"),
   scalacOptions in (ScalaUnidoc, unidoc) ++=
-    Opts.doc.sourceUrl(s"https://github.com/monix/monix-connect/tree/v${version.value}€{FILE_PATH}.scala"),
+      Opts.doc.sourceUrl(s"https://github.com/monix/monix/tree/v${version.value}€{FILE_PATH}.scala"),
   //scalacOptions in (ScalaUnidoc, unidoc) ++=
   //  Seq("-doc-root-content", file("rootdoc.txt").getAbsolutePath), //todo check usage
   scalacOptions in (ScalaUnidoc, unidoc) ++=
@@ -144,11 +144,10 @@ lazy val monix = (project in file("."))
   .settings(name := "monix-connect")
   .aggregate(akka, dynamodb, hdfs, parquet, redis, s3)
   .dependsOn(akka, dynamodb, hdfs, parquet, redis, s3)
-  //.settings(unidocSettings) //todo enable unidoc settings
-  //.enablePlugins(ScalaUnidocPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
+  .settings(unidocSettings)
 
 lazy val akka = monixConnector("akka", Dependencies.Akka)
-
 
 lazy val dynamodb = monixConnector("dynamodb", Dependencies.DynamoDb)
 
