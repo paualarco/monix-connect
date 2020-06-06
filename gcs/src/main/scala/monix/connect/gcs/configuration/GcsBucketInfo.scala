@@ -106,7 +106,6 @@ object GcsBucketInfo {
 
     // Security and Access Control
     metadata.foreach(md => builder.setAcl(md.acl.asJava))
-    metadata.foreach(md => builder.setAcl(md.acl.asJava))
     metadata.foreach(md => builder.setDefaultAcl(md.defaultAcl.asJava))
     metadata.foreach(md => builder.setCors(md.cors.asJava))
     metadata.foreach(md => builder.setLifecycleRules(md.lifecycleRules.asJava))
