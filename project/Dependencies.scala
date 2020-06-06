@@ -1,4 +1,3 @@
-import sbt.Keys.sourceManaged
 import sbt._
 
 object Dependencies {
