@@ -5,7 +5,7 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import com.google.cloud.storage.Bucket.BucketSourceOption
 import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobWriteOption, BucketTargetOption}
-import com.google.cloud.storage.{Acl, BlobId, Bucket => GoogleBucket}
+import com.google.cloud.storage.{Acl, BlobId, Bucket}
 import monix.connect.gcs.configuration.{GcsBlobInfo, GcsBucketInfo}
 import monix.connect.gcs.components.{FileIO, Paging, StorageDownloader, StorageUploader}
 import monix.eval.Task
@@ -37,7 +37,7 @@ import scala.collection.JavaConverters._
  *   } yield println(blob.name)).completeL
  * }}}
  */
-final class GcsBucket private(underlying: GoogleBucket)
+final class GcsBucket private(underlying: Bucket)
   extends StorageUploader
     with StorageDownloader
     with FileIO
@@ -314,7 +314,7 @@ final class GcsBucket private(underlying: GoogleBucket)
 }
 
 object GcsBucket {
-  private[gcs] def apply(bucket: GoogleBucket): GcsBucket = {
+  private[gcs] def apply(bucket: Bucket): GcsBucket = {
     new GcsBucket(bucket)
   }
 }

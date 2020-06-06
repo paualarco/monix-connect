@@ -1,7 +1,7 @@
 package monix.connect.gcs.configuration
 
 import com.google.cloud.storage.BucketInfo.{IamConfiguration, LifecycleRule, Logging}
-import com.google.cloud.storage.{Acl, Cors, StorageClass, BucketInfo => GoogleBucketInfo}
+import com.google.cloud.storage.{Acl, Cors, StorageClass, BucketInfo}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
@@ -62,7 +62,7 @@ object GcsBucketInfo {
       logging,
       generatedId)
 
-  def fromJava(info: GoogleBucketInfo): GcsBucketInfo = {
+  def fromJava(info: BucketInfo): GcsBucketInfo = {
     GcsBucketInfo(
       generatedId = info.getGeneratedId,
       name = info.getName,
@@ -93,8 +93,8 @@ object GcsBucketInfo {
     )
   }
 
-  def toJava(name: String, location: Location, metadata: Option[Metadata]): GoogleBucketInfo = {
-    val builder = GoogleBucketInfo.newBuilder(name).setLocation(location)
+  def toJava(name: String, location: Location, metadata: Option[Metadata]): BucketInfo = {
+    val builder = BucketInfo.newBuilder(name).setLocation(location)
     metadata.foreach(_.storageClass.foreach(builder.setStorageClass))
     metadata.foreach(_.logging.foreach(builder.setLogging))
     metadata.foreach(_.retentionPeriod.foreach(rp => builder.setRetentionPeriod(rp.toMillis)))
@@ -170,7 +170,7 @@ object GcsBucketInfo {
     cors: List[Cors] = List.empty[Cors],
     defaultAcl: List[Acl] = List.empty[Acl],
     lifecycleRules: List[LifecycleRule] = List.empty[LifecycleRule],
-    logging: Option[GoogleBucketInfo.Logging] = None,
+    logging: Option[BucketInfo.Logging] = None,
     indexPage: Option[String] = None,
     notFoundPage: Option[String] = None,
     defaultKmsKeyName: Option[String] = None,

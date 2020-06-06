@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 
 import com.google.cloud.storage.Blob.BlobSourceOption
 import com.google.cloud.storage.Storage.{BlobTargetOption, SignUrlOption}
-import com.google.cloud.storage.{Acl, BlobId, Blob => GoogleBlob, Option => _}
+import com.google.cloud.storage.{Acl, BlobId, Blob, Option => _}
 import com.google.cloud.{storage => google}
 import monix.connect.gcs.configuration.GcsBlobInfo
 import monix.connect.gcs.components.{FileIO, StorageDownloader}
@@ -25,7 +25,7 @@ import scala.concurrent.duration.FiniteDuration
  *                    dst are in the same location and share the same storage class the request is done in one RPC call,
  *                    otherwise multiple calls are issued.
  */
-final class GcsBlob(underlying: GoogleBlob)
+final class GcsBlob(underlying: Blob)
   extends StorageDownloader
     with FileIO {
 

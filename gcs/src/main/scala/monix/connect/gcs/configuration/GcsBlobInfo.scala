@@ -3,7 +3,7 @@ package monix.connect.gcs.configuration
 import java.time.Instant
 
 import com.google.cloud.storage.BlobInfo.CustomerEncryption
-import com.google.cloud.storage.{Acl, BlobId, StorageClass, BlobInfo => GoogleBlobInfo}
+import com.google.cloud.storage.{Acl, BlobId, StorageClass, BlobInfo}
 
 import scala.jdk.CollectionConverters._
 
@@ -70,8 +70,8 @@ object GcsBlobInfo {
       temporaryHold,
       retentionExpirationTime)
 
-  private[gcs] def toJava(bucket: String, name: String, metadata: Option[Metadata]): GoogleBlobInfo = {
-    val builder = GoogleBlobInfo.newBuilder(BlobId.of(bucket, name))
+  private[gcs] def toJava(bucket: String, name: String, metadata: Option[Metadata]): BlobInfo = {
+    val builder = BlobInfo.newBuilder(BlobId.of(bucket, name))
     metadata.foreach { options =>
       options.contentType.foreach(builder.setContentType)
       options.contentDisposition.foreach(builder.setContentDisposition)
@@ -92,7 +92,7 @@ object GcsBlobInfo {
     builder.build()
   }
 
-  private[gcs] def fromJava(info: GoogleBlobInfo): GcsBlobInfo = {
+  private[gcs] def fromJava(info: BlobInfo): GcsBlobInfo = {
     new GcsBlobInfo(
       name = info.getName,
       bucket = info.getBucket,

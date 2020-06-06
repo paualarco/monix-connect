@@ -5,14 +5,14 @@ import java.nio.file.Path
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.Storage._
-import com.google.cloud.storage.{StorageOptions, Storage => GoogleStorage}
+import com.google.cloud.storage.{StorageOptions, Storage}
 import monix.connect.gcs.configuration.GcsBucketInfo
 import monix.connect.gcs.components.Paging
 import monix.connect.gcs.configuration.GcsBucketInfo.{Location, Metadata}
 import monix.eval.Task
 import monix.reactive.Observable
 
-final class GcsStorage(underlying: GoogleStorage) extends Paging {
+final class GcsStorage(underlying: Storage) extends Paging {
 
   /**
    * Creates a new [[GcsBucket]] from the give config and options.
@@ -44,7 +44,7 @@ final class GcsStorage(underlying: GoogleStorage) extends Paging {
 
 object GcsStorage {
 
-  private[gcs] def apply(underlying: GoogleStorage): GcsStorage = {
+  private[gcs] def apply(underlying: Storage): GcsStorage = {
     new GcsStorage(underlying)
   }
 
