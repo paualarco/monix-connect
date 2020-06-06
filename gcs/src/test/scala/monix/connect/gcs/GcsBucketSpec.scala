@@ -12,12 +12,12 @@ import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class BucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
+class GcsBucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
   val underlying: GoogleBucket = mock[GoogleBucket]
   val storage: GoogleStorage = mock[GoogleStorage]
-  val bucket: Bucket = Bucket(underlying)
+  val bucket: GcsBucket = GcsBucket(underlying)
 
-  s"$Bucket" should {
+  s"$GcsBucket" should {
 
     "implement an async exists operation" in {
       //given
@@ -40,11 +40,11 @@ class BucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
         when(underlying.reload(bucketSourceOption)).thenReturn(googleBucket)
 
         //when
-        val maybeBucket: Option[Bucket] = bucket.reload(bucketSourceOption).runSyncUnsafe()
+        val maybeBucket: Option[GcsBucket] = bucket.reload(bucketSourceOption).runSyncUnsafe()
 
         //then
         maybeBucket.isDefined shouldBe true
-        maybeBucket.get shouldBe a[Bucket]
+        maybeBucket.get shouldBe a[GcsBucket]
         verify(underlying, times(1)).reload(bucketSourceOption)
       }
 
@@ -54,7 +54,7 @@ class BucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
         when(underlying.reload(bucketSourceOption)).thenReturn(null)
 
         //when
-        val maybeBucket: Option[Bucket] = bucket.reload(bucketSourceOption).runSyncUnsafe()
+        val maybeBucket: Option[GcsBucket] = bucket.reload(bucketSourceOption).runSyncUnsafe()
 
         //then
         maybeBucket.isDefined shouldBe false
@@ -69,10 +69,10 @@ class BucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
       when(underlying.update(bucketTargetOption)).thenReturn(googleBucket)
 
       //when
-      val maybeBucket: Bucket = bucket.update(bucketTargetOption).runSyncUnsafe()
+      val maybeBucket: GcsBucket = bucket.update(bucketTargetOption).runSyncUnsafe()
 
       //then
-      maybeBucket shouldBe a[Bucket]
+      maybeBucket shouldBe a[GcsBucket]
       verify(underlying, times(1)).update(bucketTargetOption)
     }
 
@@ -269,10 +269,10 @@ class BucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
       when(underlying.lockRetentionPolicy(bucketTargetOption)).thenReturn(underlying)
 
       //when
-      val maybeBucket: Bucket = bucket.lockRetentionPolicy(bucketTargetOption).runSyncUnsafe()
+      val maybeBucket: GcsBucket = bucket.lockRetentionPolicy(bucketTargetOption).runSyncUnsafe()
 
       //then
-      maybeBucket shouldBe a[Bucket]
+      maybeBucket shouldBe a[GcsBucket]
       verify(underlying, times(1)).lockRetentionPolicy(bucketTargetOption)
     }
   }

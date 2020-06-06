@@ -5,7 +5,7 @@ import java.util
 import com.google.api.gax.paging.Page
 import com.google.cloud.storage.Storage.{BucketGetOption, BucketListOption, BucketTargetOption}
 import com.google.cloud.storage.{Bucket => GoogleBucket, BucketInfo => GoogleBucketInfo, Storage => GoogleStorage, Option => _}
-import monix.connect.gcs.configuration.BucketInfo.Locations
+import monix.connect.gcs.configuration.GcsBucketInfo.Locations
 import monix.execution.Scheduler.Implicits.global
 import org.mockito.Mockito.{times, verify}
 import org.mockito.MockitoSugar.when
@@ -13,22 +13,22 @@ import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class StorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
+class GcsStorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
   val underlying: GoogleStorage = mock[GoogleStorage]
   val bucket: GoogleBucket = mock[GoogleBucket]
-  val storage: Storage = Storage(underlying)
+  val storage: GcsStorage = GcsStorage(underlying)
 
-  s"$Storage" should {
+  s"$GcsStorage" should {
 
     "implement an async create bucket operation" in {
       //given
       when(underlying.create(any[GoogleBucketInfo])).thenReturn(bucket)
 
       //when
-      val maybeBucket: Bucket = storage.createBucket("bucket", Locations.`EUROPE-WEST1`, None).runSyncUnsafe()
+      val maybeBucket: GcsBucket = storage.createBucket("bucket", Locations.`EUROPE-WEST1`, None).runSyncUnsafe()
 
       //then
-      maybeBucket shouldBe a[Bucket]
+      maybeBucket shouldBe a[GcsBucket]
       verify(underlying, times(1)).create(any[GoogleBucketInfo])
     }
 
@@ -39,11 +39,11 @@ class StorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wi
         when(underlying.get("bucket", bucketGetOption)).thenReturn(bucket)
 
         //when
-        val maybeBucket: Option[Bucket] = storage.getBucket("bucket", bucketGetOption).runSyncUnsafe()
+        val maybeBucket: Option[GcsBucket] = storage.getBucket("bucket", bucketGetOption).runSyncUnsafe()
 
         //then
         maybeBucket.isDefined shouldBe true
-        maybeBucket.get shouldBe a[Bucket]
+        maybeBucket.get shouldBe a[GcsBucket]
         verify(underlying, times(1)).get("bucket", bucketGetOption)
       }
 
@@ -53,7 +53,7 @@ class StorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wi
         when(underlying.get("bucket", bucketGetOption)).thenReturn(null)
 
         //when
-        val maybeBucket: Option[Bucket] = storage.getBucket("bucket", bucketGetOption).runSyncUnsafe()
+        val maybeBucket: Option[GcsBucket] = storage.getBucket("bucket", bucketGetOption).runSyncUnsafe()
 
         //then
         maybeBucket.isDefined shouldBe false
@@ -69,10 +69,10 @@ class StorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wi
         when(underlying.list(bucketListOption)).thenReturn(page)
 
         //when
-        val maybeBuckets: List[Bucket] = storage.listBuckets(bucketListOption).toListL.runSyncUnsafe()
+        val maybeBuckets: List[GcsBucket] = storage.listBuckets(bucketListOption).toListL.runSyncUnsafe()
 
         //then
-        maybeBuckets shouldBe a[List[Bucket]]
+        maybeBuckets shouldBe a[List[GcsBucket]]
         maybeBuckets.length shouldBe 3
         verify(underlying, times(1)).list(bucketListOption)
     }

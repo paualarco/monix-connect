@@ -8,7 +8,7 @@ import com.google.cloud.storage.Blob.BlobSourceOption
 import com.google.cloud.storage.Storage.{BlobTargetOption, SignUrlOption}
 import com.google.cloud.storage.{Acl, BlobId, Blob => GoogleBlob, Option => _}
 import com.google.cloud.{storage => google}
-import monix.connect.gcs.configuration.BlobInfo
+import monix.connect.gcs.configuration.GcsBlobInfo
 import monix.connect.gcs.components.{FileIO, StorageDownloader}
 import monix.eval.Task
 import monix.reactive.Observable
@@ -25,7 +25,7 @@ import scala.concurrent.duration.FiniteDuration
  *                    dst are in the same location and share the same storage class the request is done in one RPC call,
  *                    otherwise multiple calls are issued.
  */
-final class Blob(underlying: GoogleBlob)
+final class GcsBlob(underlying: GoogleBlob)
   extends StorageDownloader
     with FileIO {
 
@@ -98,9 +98,9 @@ final class Blob(underlying: GoogleBlob)
   /**
    * Fetches current blob's latest information. Returns None if the blob does not exist.
    */
-  def reload(options: BlobSourceOption*): Task[Option[Blob]] = {
+  def reload(options: BlobSourceOption*): Task[Option[GcsBlob]] = {
     Task(underlying.reload(options: _*)).map { optBlob =>
-      Option(optBlob).map(Blob.apply)
+      Option(optBlob).map(GcsBlob.apply)
     }
   }
 
@@ -108,19 +108,19 @@ final class Blob(underlying: GoogleBlob)
    * Updates the blob's information. The Blob's name cannot be changed by this method. If you
    * want to rename the blob or move it to a different bucket use the [[copyTo]] and [[delete]] operations.
    */
-  def update(options: BlobTargetOption*): Task[Blob] = {
+  def update(options: BlobTargetOption*): Task[GcsBlob] = {
     Task(underlying.update(options: _*))
-      .map(Blob.apply)
+      .map(GcsBlob.apply)
   }
 
   /**
    * Updates the blob's information. Bucket or blob's name cannot be changed by this method. If you
    * want to rename the blob or move it to a different bucket use the [[copyTo]] and [[delete]] operations.
    */
-  def update(metadata: BlobInfo.Metadata, options: BlobTargetOption*): Task[Blob] = {
-    val update = BlobInfo.toJava(underlying.getBucket, underlying.getName, Some(metadata))
+  def update(metadata: GcsBlobInfo.Metadata, options: BlobTargetOption*): Task[GcsBlob] = {
+    val update = GcsBlobInfo.toJava(underlying.getBucket, underlying.getName, Some(metadata))
     Task(underlying.getStorage.update(update, options: _*))
-      .map(Blob.apply)
+      .map(GcsBlob.apply)
   }
 
   def delete(options: BlobSourceOption*): Task[Boolean] =
@@ -131,30 +131,30 @@ final class Blob(underlying: GoogleBlob)
    *
    * $copyToNote
    */
-  def copyTo(targetBlob: BlobId, options: BlobSourceOption*): Task[Blob] =
+  def copyTo(targetBlob: BlobId, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBlob, options: _*))
       .map(_.getResult)
-      .map(Blob.apply)
+      .map(GcsBlob.apply)
 
   /**
    * Copies this blob to the target Bucket.
    *
    * $copyToNote
    */
-  def copyTo(targetBucket: String, options: BlobSourceOption*): Task[Blob] =
+  def copyTo(targetBucket: String, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBucket, options: _*))
       .map(_.getResult)
-      .map(Blob.apply)
+      .map(GcsBlob.apply)
 
   /**
    * Copies this blob to the target Blob in the target Bucket.
    *
    * $copyToNote
    */
-  def copyTo(targetBucket: String, targetBlob: String, options: BlobSourceOption*): Task[Blob] =
+  def copyTo(targetBucket: String, targetBlob: String, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBucket, targetBlob, options: _*))
       .map(_.getResult)
-      .map(Blob.apply)
+      .map(GcsBlob.apply)
 
   /**
    * Generates a signed URL for this blob. If you want to allow access for a fixed amount of time to
@@ -183,25 +183,25 @@ final class Blob(underlying: GoogleBlob)
     Task(underlying.createAcl(acl))
 
   /**
-   * Returns the [[Acl]] entry for the specified entity on this [[Blob]] or [[None]] if not found.
+   * Returns the [[Acl]] entry for the specified entity on this [[GcsBlob]] or [[None]] if not found.
    */
   def getAcl(acl: Acl.Entity): Task[Option[Acl]] =
     Task(underlying.getAcl(acl)).map(Option(_))
 
   /**
-   * Updates an ACL entry on this [[Blob]].
+   * Updates an ACL entry on this [[GcsBlob]].
    */
   def updateAcl(acl: Acl): Task[Acl] =
     Task(underlying.updateAcl(acl))
 
   /**
-   * Deletes the [[Acl]] entry for the specified [[com.google.cloud.storage.Acl.Entity]] on this [[Blob]].
+   * Deletes the [[Acl]] entry for the specified [[com.google.cloud.storage.Acl.Entity]] on this [[GcsBlob]].
    */
   def deleteAcl(acl: Acl.Entity): Task[Boolean] =
     Task(underlying.deleteAcl(acl))
 
   /**
-   * Returns an [[Observable]] of all the [[Acl]] Entries for this [[Blob]].
+   * Returns an [[Observable]] of all the [[Acl]] Entries for this [[GcsBlob]].
    */
   def listAcls(): Observable[Acl] = {
     Observable.suspend {
@@ -212,9 +212,9 @@ final class Blob(underlying: GoogleBlob)
   /**
    * Returns all the metadata associated with this Blob instance.
    */
-  def blobInfo: BlobInfo = BlobInfo.fromJava(underlying)
+  def blobInfo: GcsBlobInfo = GcsBlobInfo.fromJava(underlying)
 }
 
-object Blob {
-  def apply(blob: google.Blob) = new Blob(blob)
+object GcsBlob {
+  def apply(blob: google.Blob) = new GcsBlob(blob)
 }

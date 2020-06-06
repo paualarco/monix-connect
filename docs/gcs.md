@@ -30,9 +30,9 @@ Service Account with the required permissions in order to use the
 connector.
 
 ```scala
-import monix.connect.gcs.Storage
+import monix.connect.gcs.GcsStorage
 
-val storage = Storage.create()
+val storage = GcsStorage.create()
 ```
 
 Alternatively you will be able to point to connector to the credentials
@@ -47,11 +47,11 @@ import monix.connect.gcs.Storage
 val projectId = "monix-connect-gcs"
 val credentials = Paths.get("/path/to/credentials.json")
 
-val storage = Storage.create(projectId, credentials)
+val storage = GcsStorage.create(projectId, credentials)
 ```
-Once you have a storage object created you can begin to work with GCS.
-You can create a new Storage Bucket by using the methods on
-the Storage object:
+Once you have a GcsStorage object created you can begin to work with
+GCS. You can create a new GcsBucket by using the methods on the
+GcsStorage object:
 
 ```scala
 import java.io.File
@@ -60,15 +60,15 @@ import io.monix.connect.gcs._
 import io.monix.connect.gcs.configuration._
 import io.monix.connect.gcs.configuration.BucketInfo.Locations
 
-val storage = Storage.create()
+val storage = GcsStorage.create()
 
-val metadata = BucketInfo.Metadata(
+val metadata = GcsBucketInfo.Metadata(
   labels = Map(
     "project" -> "my-first-gcs-bucket"
   ),
   storageClass = Some(StorageClass.REGIONAL)
 )
-val bucket: Task[Bucket] = storage.createBucket("mybucket", Locations.`EUROPE-WEST1`, Some(metadata)).memoizeOnSuccess
+val bucket: Task[GcsBucket] = storage.createBucket("mybucket", Locations.`EUROPE-WEST1`, Some(metadata)).memoizeOnSuccess
 ```
 Once you have a bucket instance you will be able to upload and download
 `Blobs` from it using the methods on the Bucket. You can upload a file
@@ -83,10 +83,10 @@ import monix.reactive.Observable
 
 // Upload from a File
 val myFile = Paths.get("/tmp/myfile0.txt")
-val metadata = BlobInfo.Metadata(
+val metadata = GcsBlobInfo.Metadata(
   contentType = Some("text/plain")
 )
-val blob0: Task[Blob] = {
+val blob0: Task[GcsBlob] = {
   for {
     bucket <- bucket
     blob   <- b.uploadFromFile("my-first-file", myFile, metadata)
@@ -95,7 +95,7 @@ val blob0: Task[Blob] = {
 
 // Upload from a Streaming Source
 val myDataSource = Observable.fromIterable("this is some data".getBytes(StandardCharsets.UTF_8))
-val blob1: Task[Blob] = {
+val blob1: Task[Unit] = {
   for {
     bucket   <- bucket
     consumer <- b.upload("my-second-file", metadata)
@@ -112,7 +112,7 @@ import io.monix.connect.gcs._
 
 // Upload to a File
 val myFile = Paths.get("/tmp/myfile0.txt")
-val blob0: Task[Blob] = {
+val blob0: Task[GcsBlob] = {
   for {
     bucket <- bucket
     _      <- b.downloadToFile("my-first-file", myFile)

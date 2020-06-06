@@ -16,12 +16,12 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 
-class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
+class GcsBlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
 
   val underlying: GoogleBlob = mock[GoogleBlob]
-  val blob: Blob = Blob(underlying)
+  val blob: GcsBlob = GcsBlob(underlying)
 
-  s"$Blob" should {
+  s"$GcsBlob" should {
 
     "implement an async exists operation" in {
       //given
@@ -45,11 +45,11 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
         when(underlying.reload(blobSourceOption)).thenReturn(googleBlob)
 
         //when
-        val maybeBlob: Option[Blob] = blob.reload(blobSourceOption).runSyncUnsafe()
+        val maybeBlob: Option[GcsBlob] = blob.reload(blobSourceOption).runSyncUnsafe()
 
         //then
         maybeBlob.isDefined shouldBe true
-        maybeBlob.get shouldBe a[Blob]
+        maybeBlob.get shouldBe a[GcsBlob]
         verify(underlying, times(1)).reload(blobSourceOption)
       }
 
@@ -59,7 +59,7 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
         when(underlying.reload(blobSourceOption)).thenReturn(null)
 
         //when
-        val maybeBlob: Option[Blob] = blob.reload(blobSourceOption).runSyncUnsafe()
+        val maybeBlob: Option[GcsBlob] = blob.reload(blobSourceOption).runSyncUnsafe()
 
         //then
         maybeBlob.isDefined shouldBe false
@@ -74,10 +74,10 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
       when(underlying.update(blobTargetOption)).thenReturn(googleBlob)
 
       //when
-      val maybeBlob: Blob = blob.update(blobTargetOption).runSyncUnsafe()
+      val maybeBlob: GcsBlob = blob.update(blobTargetOption).runSyncUnsafe()
 
       //then
-      maybeBlob shouldBe a[Blob]
+      maybeBlob shouldBe a[GcsBlob]
       verify(underlying, times(1)).update(blobTargetOption)
     }
 
@@ -104,10 +104,10 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
         when(underlying.copyTo(blobId, blobSourceOption)).thenReturn(copywriter)
 
         //when
-        val maybeBlob: Blob = blob.copyTo(blobId, blobSourceOption).runSyncUnsafe()
+        val maybeBlob: GcsBlob = blob.copyTo(blobId, blobSourceOption).runSyncUnsafe()
 
         //then
-        maybeBlob shouldBe a[Blob]
+        maybeBlob shouldBe a[GcsBlob]
         verify(underlying, times(1)).copyTo(blobId, blobSourceOption)
       }
 
@@ -118,10 +118,10 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
         when(underlying.copyTo("bucket2", blobSourceOption)).thenReturn(copywriter)
 
         //when
-        val maybeBlob: Blob = blob.copyTo("bucket2", blobSourceOption).runSyncUnsafe()
+        val maybeBlob: GcsBlob = blob.copyTo("bucket2", blobSourceOption).runSyncUnsafe()
 
         //then
-        maybeBlob shouldBe a[Blob]
+        maybeBlob shouldBe a[GcsBlob]
         verify(underlying, times(1)).copyTo("bucket2", blobSourceOption)
       }
 
@@ -132,10 +132,10 @@ class BlobSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
         when(underlying.copyTo("bucket2", "blob2", blobSourceOption)).thenReturn(copywriter)
 
         //when
-        val maybeBlob: Blob = blob.copyTo("bucket2", "blob2", blobSourceOption).runSyncUnsafe()
+        val maybeBlob: GcsBlob = blob.copyTo("bucket2", "blob2", blobSourceOption).runSyncUnsafe()
 
         //then
-        maybeBlob shouldBe a[Blob]
+        maybeBlob shouldBe a[GcsBlob]
         verify(underlying, times(1)).copyTo("bucket2", "blob2", blobSourceOption)
       }
     }

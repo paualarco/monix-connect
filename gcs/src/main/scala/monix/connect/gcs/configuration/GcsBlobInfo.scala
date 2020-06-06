@@ -7,7 +7,7 @@ import com.google.cloud.storage.{Acl, BlobId, StorageClass, BlobInfo => GoogleBl
 
 import scala.jdk.CollectionConverters._
 
-object BlobInfo {
+object GcsBlobInfo {
 
   def apply(
     name: String,
@@ -38,8 +38,8 @@ object BlobInfo {
     kmsKeyName: String,
     eventBasedHold: Option[Boolean],
     temporaryHold: Option[Boolean],
-    retentionExpirationTime: Option[Instant]): BlobInfo =
-    new BlobInfo(
+    retentionExpirationTime: Option[Instant]): GcsBlobInfo =
+    new GcsBlobInfo(
       name,
       bucket,
       generatedId,
@@ -92,8 +92,8 @@ object BlobInfo {
     builder.build()
   }
 
-  private[gcs] def fromJava(info: GoogleBlobInfo): BlobInfo = {
-    new BlobInfo(
+  private[gcs] def fromJava(info: GoogleBlobInfo): GcsBlobInfo = {
+    new GcsBlobInfo(
       name = info.getName,
       bucket = info.getBucket,
       generatedId = info.getGeneratedId,
@@ -146,7 +146,7 @@ object BlobInfo {
 
 }
 
-private[gcs] final class BlobInfo(
+private[gcs] final class GcsBlobInfo(
   name: String,
   bucket: String,
   generatedId: String,

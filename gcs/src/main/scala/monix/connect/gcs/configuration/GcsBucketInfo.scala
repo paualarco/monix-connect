@@ -6,7 +6,7 @@ import com.google.cloud.storage.{Acl, Cors, StorageClass, BucketInfo => GoogleBu
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
-object BucketInfo {
+object GcsBucketInfo {
   def apply(
     name: String,
     location: String,
@@ -33,8 +33,8 @@ object BucketInfo {
     iamConfiguration: IamConfiguration,
     locationType: String,
     logging: Logging,
-    generatedId: String): BucketInfo =
-    new BucketInfo(
+    generatedId: String): GcsBucketInfo =
+    new GcsBucketInfo(
       name,
       location,
       owner,
@@ -62,8 +62,8 @@ object BucketInfo {
       logging,
       generatedId)
 
-  def fromJava(info: GoogleBucketInfo): BucketInfo = {
-    BucketInfo(
+  def fromJava(info: GoogleBucketInfo): GcsBucketInfo = {
+    GcsBucketInfo(
       generatedId = info.getGeneratedId,
       name = info.getName,
       owner = info.getOwner,
@@ -179,7 +179,7 @@ object BucketInfo {
   )
 }
 
-private[gcs] final class BucketInfo(
+private[gcs] final class GcsBucketInfo(
   name: String,
   location: String,
   owner: Acl.Entity,
