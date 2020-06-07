@@ -1,7 +1,7 @@
 package monix.connect.gcs.configuration
 
 import com.google.cloud.ReadChannel
-import com.google.cloud.storage.{Blob, Bucket, Storage, Option => _}
+import com.google.cloud.storage.{Blob, Bucket, BucketInfo, Storage, Option => _}
 import monix.connect.gcs.GscFixture
 import org.mockito.IdiomaticMockito
 import org.scalacheck.Gen
@@ -25,7 +25,7 @@ class GscBucketInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Match
       val metadata = genBucketInfoMetadata.sample.get
 
       //when
-      val bucketInfo = GcsBucketInfo.withMetadata(bucketName, location, Some(metadata))
+      val bucketInfo: BucketInfo = GcsBucketInfo.withMetadata(bucketName, location, Some(metadata))
 
       //then
       Option(bucketInfo.getStorageClass) shouldBe metadata.storageClass

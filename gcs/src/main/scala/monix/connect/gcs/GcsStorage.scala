@@ -6,7 +6,6 @@ import java.nio.file.Path
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.Storage._
 import com.google.cloud.storage.{Storage, StorageOptions}
-import monix.connect.gcs
 import monix.connect.gcs.configuration.GcsBucketInfo
 import monix.connect.gcs.components.Paging
 import monix.connect.gcs.configuration.GcsBucketInfo.Metadata

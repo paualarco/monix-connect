@@ -3,7 +3,7 @@ package monix.connect.gcs
 import java.util
 
 import com.google.api.gax.paging.Page
-import com.google.cloud.storage.Storage.{BucketGetOption, BucketListOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BucketGetOption, BucketListOption}
 import com.google.cloud.storage.{Bucket => GoogleBucket, BucketInfo => GoogleBucketInfo, Storage => GoogleStorage, Option => _}
 import monix.connect.gcs.configuration.GcsBucketInfo.Locations
 import monix.execution.Scheduler.Implicits.global
