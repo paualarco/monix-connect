@@ -8,89 +8,43 @@ import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
 object GcsBucketInfo {
-  def apply(
-    name: String,
-    location: String,
-    owner: Acl.Entity,
-    selfLink: String,
-    requesterPays: Option[Boolean],
-    versioningEnabled: Option[Boolean],
-    indexPage: String,
-    notFoundPage: String,
-    lifecycleRules: List[LifecycleRule],
-    storageClass: StorageClass,
-    etag: String,
-    createTime: Long,
-    metageneration: Long,
-    cors: List[Cors],
-    acl: List[Acl],
-    defaultAcl: List[Acl],
-    labels: Map[String, String],
-    defaultKmsKeyName: String,
-    defaultEventBasedHold: Option[Boolean],
-    retentionEffectiveTime: Long,
-    retentionPolicyIsLocked: Option[Boolean],
-    retentionPeriod: Long,
-    iamConfiguration: IamConfiguration,
-    locationType: String,
-    logging: Logging,
-    generatedId: String): GcsBucketInfo =
-    new GcsBucketInfo(
-      name,
-      location,
-      owner,
-      selfLink,
-      requesterPays,
-      versioningEnabled,
-      indexPage,
-      notFoundPage,
-      lifecycleRules,
-      storageClass,
-      etag,
-      createTime,
-      metageneration,
-      cors,
-      acl,
-      defaultAcl,
-      labels,
-      defaultKmsKeyName,
-      defaultEventBasedHold,
-      retentionEffectiveTime,
-      retentionPolicyIsLocked,
-      retentionPeriod,
-      iamConfiguration,
-      locationType,
-      logging,
-      generatedId)
 
-  def fromJava(info: BucketInfo): GcsBucketInfo = {
+  def fromJava(bucketInfo: BucketInfo): GcsBucketInfo = {
+    val requestPays =  Option(bucketInfo.requesterPays()).map(_.booleanValue)
+    val versioningEnabled = Option(bucketInfo.versioningEnabled).map(_.booleanValue)
+    val metageneration = Option(bucketInfo.getMetageneration).map(_.longValue)
+    val defaultEventBaseHold = Option(bucketInfo.getDefaultEventBasedHold).map(_.booleanValue)
+    val retentionEffectiveTime = Option(bucketInfo.getRetentionEffectiveTime).map(_.longValue)
+    val retentionPolicyIsLocked = Option(bucketInfo.retentionPolicyIsLocked).map(_.booleanValue)
+    val retentionPeriod = Option(bucketInfo.getRetentionPeriod).map(_.longValue)
+
     GcsBucketInfo(
-      generatedId = info.getGeneratedId,
-      name = info.getName,
-      owner = info.getOwner,
-      selfLink = info.getSelfLink,
-      requesterPays = Option(info.requesterPays()),
-      versioningEnabled = Option(info.versioningEnabled()),
-      indexPage = info.getIndexPage,
-      notFoundPage = info.getNotFoundPage,
-      lifecycleRules = info.getLifecycleRules.asScala.toList,
-      storageClass = info.getStorageClass,
-      location = info.getLocation,
-      etag = info.getEtag,
-      createTime = info.getCreateTime,
-      metageneration = info.getMetageneration,
-      cors = info.getCors.asScala.toList,
-      acl = info.getAcl.asScala.toList,
-      defaultAcl = info.getDefaultAcl.asScala.toList,
-      labels = info.getLabels.asScala.toMap,
-      defaultKmsKeyName = info.getDefaultKmsKeyName,
-      defaultEventBasedHold = Option(info.getDefaultEventBasedHold),
-      retentionEffectiveTime = info.getRetentionEffectiveTime,
-      retentionPolicyIsLocked = Option(info.retentionPolicyIsLocked()),
-      retentionPeriod = info.getRetentionPeriod,
-      iamConfiguration = info.getIamConfiguration,
-      locationType = info.getLocationType,
-      logging = info.getLogging
+      generatedId = bucketInfo.getGeneratedId,
+      name = bucketInfo.getName,
+      owner = bucketInfo.getOwner,
+      selfLink = bucketInfo.getSelfLink,
+      requesterPays = requestPays,
+      versioningEnabled = versioningEnabled,
+      indexPage = bucketInfo.getIndexPage,
+      notFoundPage = bucketInfo.getNotFoundPage,
+      lifecycleRules = Option(bucketInfo.getLifecycleRules).map(_.asScala.toList).getOrElse(List.empty[LifecycleRule]),
+      storageClass = Option(bucketInfo.getStorageClass),
+      location = bucketInfo.getLocation,
+      etag = bucketInfo.getEtag,
+      createTime = bucketInfo.getCreateTime,
+      metageneration = metageneration,
+      cors = Option(bucketInfo.getCors).map(_.asScala.toList).getOrElse(List.empty[Cors]),
+      acl = Option(bucketInfo.getAcl).map(_.asScala.toList).getOrElse(List.empty[Acl]),
+      defaultAcl = Option(bucketInfo.getDefaultAcl).map(_.asScala.toList).getOrElse(List.empty[Acl]),
+      labels = Option(bucketInfo.getLabels).map(_.asScala.toMap).getOrElse(Map.empty[String, String]),
+      defaultKmsKeyName = bucketInfo.getDefaultKmsKeyName,
+      defaultEventBasedHold = defaultEventBaseHold,
+      retentionEffectiveTime = retentionEffectiveTime,
+      retentionPolicyIsLocked = retentionPolicyIsLocked,
+      retentionPeriod = retentionPeriod,
+      iamConfiguration = bucketInfo.getIamConfiguration,
+      locationType = bucketInfo.getLocationType,
+      logging = bucketInfo.getLogging
     )
   }
 
@@ -180,7 +134,7 @@ object GcsBucketInfo {
   )
 }
 
-private[gcs] final class GcsBucketInfo(
+private[gcs] case class GcsBucketInfo(
   name: String,
   location: String,
   owner: Acl.Entity,
@@ -190,19 +144,19 @@ private[gcs] final class GcsBucketInfo(
   indexPage: String,
   notFoundPage: String,
   lifecycleRules: List[LifecycleRule],
-  storageClass: StorageClass,
+  storageClass: Option[StorageClass],
   etag: String,
   createTime: Long,
-  metageneration: Long,
+  metageneration: Option[Long],
   cors: List[Cors],
   acl: List[Acl],
   defaultAcl: List[Acl],
   labels: Map[String, String],
   defaultKmsKeyName: String,
   defaultEventBasedHold: Option[Boolean],
-  retentionEffectiveTime: Long,
+  retentionEffectiveTime: Option[Long],
   retentionPolicyIsLocked: Option[Boolean],
-  retentionPeriod: Long,
+  retentionPeriod: Option[Long],
   iamConfiguration: IamConfiguration,
   locationType: String,
   logging: Logging,
