@@ -1,13 +1,18 @@
 package monix.connect.gcs
 
-import com.google.cloud.storage.{Acl, BlobId, BlobInfo, StorageClass}
+import com.google.cloud.storage.{Acl, BlobId, BlobInfo, Cors, StorageClass}
 import com.google.cloud.storage.Acl.{Entity, Group, Project, Role, User}
-import monix.connect.gcs.configuration.GcsBlobInfo
+import com.google.cloud.storage.BucketInfo.LifecycleRule.{DeleteLifecycleAction, LifecycleAction, LifecycleCondition}
+import com.google.cloud.storage.BucketInfo.{IamConfiguration, LifecycleRule, Logging}
+import monix.connect.gcs.configuration.{GcsBlobInfo, GcsBucketInfo}
 import org.scalacheck.Gen
 
 import scala.jdk.CollectionConverters._
+import scala.concurrent.duration._
 
 trait GscFixture {
+
+  val genBool = Gen.oneOf(true, false)
 
   val genAcl: Gen[Acl] = for {
     entity <- Gen.oneOf[Entity](User.ofAllUsers(), new Group("sample@email.com"), new Project(Project.ProjectRole.OWNERS, "id"))
@@ -82,6 +87,46 @@ trait GscFixture {
       storageClass = storageClass,
       temporaryHold = temporaryHold,
       eventBasedHold = eventBasedHold,
+    )
+  }
+
+  val genIamConf = IamConfiguration.newBuilder().build()
+  val genDeleteLifeCycleRule = new LifecycleRule(LifecycleAction.newDeleteAction(), LifecycleCondition.newBuilder().setIsLive(true).build())
+  val genLifeCycleRules = Gen.nonEmptyListOf(genDeleteLifeCycleRule)
+  val genCors = Gen.nonEmptyListOf(Cors.newBuilder().build())
+  val genBucketInfoMetadata = for {
+    storageClass <- Gen.option(genStorageClass)
+    logging <- Gen.option(Logging.newBuilder().setLogBucket("WARN").build())
+    retentionPeriod <- Gen.option(Gen.choose(1, 1000).map(_.seconds))
+    versioningEnabled <- Gen.option(genBool)
+    requesterPays <- Gen.option(genBool)
+    eventBasedHold <- Gen.option(genBool)
+    acl <- Gen.listOf(genAcl)
+    defaultAcl <- Gen.listOf(genAcl)
+    cors <- genCors
+    lifecycleRules <- genLifeCycleRules
+    iamConfiguration <- Gen.option(genIamConf)
+    defaultKmsKeyName <- Gen.option(Gen.alphaLowerStr)
+    labels <- Gen.mapOfN(3, ("labelKey", "labelValue"))
+    indexPage <- Gen.option(Gen.alphaLowerStr)
+    notFoundPage <- Gen.option(Gen.alphaLowerStr)
+  } yield {
+    GcsBucketInfo.Metadata(
+      storageClass = storageClass,
+      logging = logging,
+      retentionPeriod = retentionPeriod,
+      versioningEnabled = versioningEnabled,
+      requesterPays = requesterPays,
+      defaultEventBasedHold = eventBasedHold,
+      acl = acl,
+      defaultAcl = defaultAcl,
+      cors = cors,
+      lifecycleRules = lifecycleRules,
+      iamConfiguration = iamConfiguration,
+      defaultKmsKeyName = defaultKmsKeyName,
+      labels = labels,
+      indexPage =  indexPage,
+      notFoundPage = notFoundPage
     )
   }
 }

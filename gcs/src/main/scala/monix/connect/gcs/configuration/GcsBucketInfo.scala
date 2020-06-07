@@ -1,7 +1,8 @@
 package monix.connect.gcs.configuration
 
 import com.google.cloud.storage.BucketInfo.{IamConfiguration, LifecycleRule, Logging}
-import com.google.cloud.storage.{Acl, Cors, StorageClass, BucketInfo}
+import com.google.cloud.storage.{Acl, BucketInfo, Cors, StorageClass}
+import monix.connect.gcs.configuration.GcsBucketInfo.Locations.Location
 
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
@@ -93,19 +94,18 @@ object GcsBucketInfo {
     )
   }
 
-  def toJava(name: String, location: Location, metadata: Option[Metadata]): BucketInfo = {
-    val builder = BucketInfo.newBuilder(name).setLocation(location)
+  def withMetadata(bucketName: String, location: Location, metadata: Option[Metadata]): BucketInfo = {
+    val builder = BucketInfo.newBuilder(bucketName).setLocation(location.toString)
     metadata.foreach(_.storageClass.foreach(builder.setStorageClass))
     metadata.foreach(_.logging.foreach(builder.setLogging))
     metadata.foreach(_.retentionPeriod.foreach(rp => builder.setRetentionPeriod(rp.toMillis)))
-    metadata.foreach(_.defaultEventBasedHold.foreach(evb => builder.setDefaultEventBasedHold(evb)))
 
     // Booleans
-    metadata.foreach(_.versioningEnabled.foreach(b => builder.setVersioningEnabled(b)))
-    metadata.foreach(_.requesterPays.foreach(b => builder.setRequesterPays(b)))
+    metadata.foreach(_.versioningEnabled.foreach(builder.setVersioningEnabled(_)))
+    metadata.foreach(_.requesterPays.foreach(builder.setRequesterPays(_)))
+    metadata.foreach(_.defaultEventBasedHold.foreach(builder.setDefaultEventBasedHold(_)))
 
     // Security and Access Control
-    metadata.foreach(md => builder.setAcl(md.acl.asJava))
     metadata.foreach(md => builder.setAcl(md.acl.asJava))
     metadata.foreach(md => builder.setDefaultAcl(md.defaultAcl.asJava))
     metadata.foreach(md => builder.setCors(md.cors.asJava))
@@ -115,15 +115,16 @@ object GcsBucketInfo {
 
     // Pages and Metadata
     metadata.foreach(md => builder.setLabels(md.labels.asJava))
-    metadata.foreach(_.indexPage.foreach(builder.setNotFoundPage))
+    metadata.foreach(_.indexPage.foreach(builder.setIndexPage))
     metadata.foreach(_.notFoundPage.foreach(builder.setNotFoundPage))
 
     builder.build()
   }
 
-  type Location = String
 
   object Locations {
+
+    type Location = String
 
     // Regions
     lazy val `NORTHAMERICA-NORTHEAST1`: Location = "NORTHAMERICA-NORTHEAST1"
