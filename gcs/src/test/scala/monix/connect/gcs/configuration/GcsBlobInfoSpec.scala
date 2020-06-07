@@ -11,7 +11,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.jdk.CollectionConverters._
 
-class GscBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with GscFixture {
+class GcsBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with GscFixture {
 
   val underlying: GoogleBlob = mock[GoogleBlob]
   val mockStorage: Storage = mock[Storage]

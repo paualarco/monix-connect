@@ -11,7 +11,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.jdk.CollectionConverters._
 
-class GscBucketInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with GscFixture {
+class GcsBucketInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with GscFixture {
 
   val underlying: Bucket = mock[Bucket]
   val mockStorage: Storage = mock[Storage]
