@@ -137,7 +137,7 @@ final class GcsBucket private (underlying: Bucket)
 
   //todo revise
   // I think that could replace upload method, because it is not wrapped in a task, which makes it easier to be accessed and used
-  def uploader(name: String,
+  def writer(name: String,
               metadata: Option[GcsBlobInfo.Metadata] = None,
               chunkSize: Int = 4096,
               options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsWriterConsumer = {
