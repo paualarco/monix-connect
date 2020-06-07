@@ -3,12 +3,8 @@ package monix.connect.gcs.configuration
 import com.google.cloud.ReadChannel
 import com.google.cloud.storage.{BlobId, Storage, Blob => GoogleBlob, Option => _}
 import monix.connect.gcs.GscFixture
-import monix.execution.Scheduler.Implicits.global
 import org.mockito.IdiomaticMockito
-import org.mockito.MockitoSugar.when
 import org.scalatest.matchers.should.Matchers
-import org.mockito.Mockito.{times, verify}
-import org.mockito.ArgumentMatchers.any
 import org.scalacheck.Gen
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -20,9 +16,9 @@ class GscBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matcher
   val mockStorage: Storage = mock[Storage]
   val readChannel: ReadChannel = mock[ReadChannel]
 
-  s"${GcsBlobInfo}" should {
+  s"${GcsBlobInfo}" can {
 
-    " be created `withMetadata`" in   {
+    "be created from method `withMetadata`" in   {
       //given
       val bucketName = Gen.alphaLowerStr.sample.get
       val blobName = Gen.alphaLowerStr.sample.get

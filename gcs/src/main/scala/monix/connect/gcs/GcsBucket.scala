@@ -7,10 +7,9 @@ import com.google.cloud.storage.Bucket.BucketSourceOption
 import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobWriteOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, BlobId, Bucket}
 import monix.connect.gcs.configuration.{GcsBlobInfo, GcsBucketInfo}
-import monix.connect.gcs.components.{FileIO, Paging, StorageDownloader, StorageUploader}
+import monix.connect.gcs.components.{FileIO, GcsWriterConsumer, Paging, StorageDownloader, StorageUploader, StorageWriterConsumer}
 import monix.eval.Task
 import monix.reactive.Observable
-import monix.connect.gcs.components.StorageWriterConsumer
 
 import scala.collection.JavaConverters._
 
@@ -136,6 +135,16 @@ final class GcsBucket private (underlying: Bucket)
     upload(underlying.getStorage, blobInfo, chunkSize, options: _*)
   }
 
+  //todo revise
+  // I think that could replace upload method, because it is not wrapped in a task, which makes it easier to be accessed and used
+  def uploader(name: String,
+              metadata: Option[GcsBlobInfo.Metadata] = None,
+              chunkSize: Int = 4096,
+              options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsWriterConsumer = {
+    val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
+    new GcsWriterConsumer(underlying.getStorage, blobInfo, chunkSize, options: _*)
+  }
+
   /**
     * Uploads the provided file to the specified target Blob.
     *
@@ -164,13 +173,14 @@ final class GcsBucket private (underlying: Bucket)
     path: Path,
     metadata: Option[GcsBlobInfo.Metadata] = None,
     chunkSize: Int = 4096,
-    options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Unit] = {
+    options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Long] = {
     val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
     upload(underlying.getStorage, blobInfo, chunkSize, options: _*).flatMap { consumer =>
       openFileInputStream(path).flatMap { fis => Observable.fromInputStreamUnsafe(fis).takeWhile(_.nonEmpty) }
         .consumeWith(consumer)
     }
   }
+
 
   /**
     * Checks if this bucket exists.

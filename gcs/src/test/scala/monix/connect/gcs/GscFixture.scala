@@ -19,7 +19,7 @@ trait GscFixture {
   val genStorageClass: Gen[StorageClass] = Gen.oneOf(StorageClass.ARCHIVE, StorageClass.COLDLINE, StorageClass.DURABLE_REDUCED_AVAILABILITY, StorageClass.MULTI_REGIONAL, StorageClass.NEARLINE, StorageClass.REGIONAL, StorageClass.STANDARD)
   val genHex: Gen[String] = Gen.oneOf("1100", "12AC")
 
-  val genGscBlobInfo: Gen[BlobInfo.Builder] = for {
+  val genGscBlobInfo: Gen[BlobInfo] = for {
     bucket <- Gen.alphaLowerStr
     name <- Gen.alphaLowerStr
     contentType <- Gen.option(Gen.alphaLowerStr)
@@ -35,7 +35,7 @@ trait GscFixture {
     temporaryHold <- Gen.option(Gen.oneOf(true, false))
     eventBasedHold <- Gen.option(Gen.oneOf(true, false))
     acl <- Gen.listOf(genAcl)
-    metadata <- Gen.mapOfN(3, ("k", "f"))
+    metadata <- Gen.mapOfN(3, ("k", "v"))
   } yield {
     val builder = BlobInfo.newBuilder(BlobId.of(bucket, name))
     contentType.foreach(builder.setContentType)
