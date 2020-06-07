@@ -11,7 +11,7 @@ trait StorageUploader {
   private def openWriteChannel(storage: Storage, blobInfo: BlobInfo, chunkSize: Int, options: BlobWriteOption*): Resource[Task, WriteChannel] = {
     Resource.make {
       Task {
-        val writer = storage.writer(blobInfo, options: _*)
+        val writer: WriteChannel = storage.writer(blobInfo, options: _*)
         writer.setChunkSize(chunkSize)
         writer
       }
@@ -20,9 +20,9 @@ trait StorageUploader {
     }
   }
 
-  protected def upload(storage: Storage, blobInfo: BlobInfo, chunkSize: Int, options: BlobWriteOption*): Task[StorageConsumer] = {
-    openWriteChannel(storage, blobInfo, chunkSize, options: _*).use { channel =>
-      Task(StorageConsumer(channel))
+  protected def upload(storage: Storage, blobInfo: BlobInfo, chunkSize: Int, options: BlobWriteOption*): Task[StorageWriterConsumer] = {
+    openWriteChannel(storage, blobInfo, chunkSize, options: _*).use { writeChannel =>
+      Task(StorageWriterConsumer(writeChannel))
     }
   }
 }

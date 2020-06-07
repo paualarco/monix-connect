@@ -13,7 +13,7 @@ object GcsBlobInfo {
     name: String,
     bucket: String,
     generatedId: String,
-    cacheControl: Option[String],
+    cacheControl: Option[String] = None,
     size: Long,
     contentType: Option[String],
     contentEncoding: Option[String],
@@ -70,8 +70,8 @@ object GcsBlobInfo {
       temporaryHold,
       retentionExpirationTime)
 
-  private[gcs] def toJava(bucket: String, name: String, metadata: Option[Metadata]): BlobInfo = {
-    val builder = BlobInfo.newBuilder(BlobId.of(bucket, name))
+  private[gcs] def withMetadata(bucketName: String, blobName: String, metadata: Option[Metadata]): BlobInfo = {
+    val builder = BlobInfo.newBuilder(BlobId.of(bucketName, blobName))
     metadata.foreach { options =>
       options.contentType.foreach(builder.setContentType)
       options.contentDisposition.foreach(builder.setContentDisposition)
@@ -83,8 +83,8 @@ object GcsBlobInfo {
       options.md5.foreach(builder.setMd5)
       options.md5FromHexString.foreach(builder.setMd5FromHexString)
       options.storageClass.foreach(builder.setStorageClass)
-      options.temporaryHold.foreach(b => builder.setEventBasedHold(b))
-      options.eventBasedHold.foreach(b => builder.setEventBasedHold(b))
+      options.temporaryHold.foreach(builder.setTemporaryHold(_))
+      options.eventBasedHold.foreach(builder.setEventBasedHold(_))
       builder.setAcl(options.acl.asJava)
       builder.setMetadata(options.metadata.asJava)
     }
@@ -93,7 +93,7 @@ object GcsBlobInfo {
   }
 
   private[gcs] def fromJava(info: BlobInfo): GcsBlobInfo = {
-    new GcsBlobInfo(
+     GcsBlobInfo(
       name = info.getName,
       bucket = info.getBucket,
       generatedId = info.getGeneratedId,

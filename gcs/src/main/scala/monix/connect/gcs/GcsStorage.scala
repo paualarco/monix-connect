@@ -15,8 +15,8 @@ import monix.reactive.Observable
 final class GcsStorage(underlying: Storage) extends Paging {
 
   /**
-   * Creates a new [[GcsBucket]] from the give config and options.
-   */
+    * Creates a new [[GcsBucket]] from the give config and options.
+    */
   def createBucket(name: String,
                    location: Location,
                    metadata: Option[Metadata],
@@ -27,8 +27,8 @@ final class GcsStorage(underlying: Storage) extends Paging {
   }
 
   /**
-   * Returns the specified bucket or None if it doesn't exist.
-   */
+    * Returns the specified bucket or None if it doesn't exist.
+    */
   def getBucket(name: String, options: BucketGetOption*): Task[Option[GcsBucket]] = {
     Task(underlying.get(name, options: _*)).map { optBucket =>
       Option(optBucket).map(GcsBucket.apply)
@@ -36,8 +36,8 @@ final class GcsStorage(underlying: Storage) extends Paging {
   }
 
   /**
-   * Returns an [[Observable]] of all buckets attached to this storage instance.
-   */
+    * Returns an [[Observable]] of all buckets attached to this storage instance.
+    */
   def listBuckets(options: BucketListOption *): Observable[GcsBucket] =
     walk(Task(underlying.list(options: _*))).map(GcsBucket.apply)
 }
@@ -53,7 +53,7 @@ object GcsStorage {
   }
 
   def create(projectId: String, credentials: Path): GcsStorage = {
-    new GcsStorage(StorageOptions
+     new GcsStorage(StorageOptions
       .newBuilder()
       .setProjectId(projectId)
       .setCredentials(GoogleCredentials.fromStream(new FileInputStream(credentials.toFile)))

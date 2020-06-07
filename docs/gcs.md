@@ -12,7 +12,7 @@ service. _Google Cloud Storage_ is almost infinitely scalable and
 guarantees consistency: when a write succeeds, the latest copy of the
 object will be returned to any GET, globally.
 
-### Set up
+### Dependency
 
 Add the following dependency to get started:
 ```scala
