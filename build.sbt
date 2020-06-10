@@ -12,7 +12,7 @@ val monixConnectSeries = "0.1.0"
 lazy val sharedSettings = Seq(
   organization       := "io.monix",
   homepage := Some(url("https://monix.io/monix-connect")),
-  scalaVersion       := "2.12.8",
+  scalaVersion       := "2.12.10",
   crossScalaVersions := Seq("2.12.10", "2.13.1"),
   scalafmtOnCompile  := true,
   scalacOptions ++= Seq(
@@ -191,6 +191,8 @@ lazy val redis = monixConnector("redis", Dependencies.Redis)
 lazy val s3 = monixConnector("s3", Dependencies.S3)
 
 lazy val gcs = monixConnector("gcs", Dependencies.GCS)
+
+lazy val bytes = monixConnector("bytes", Dependencies.GCS)
 
 def monixConnector(
   connectorName: String,
