@@ -18,11 +18,14 @@
 package monix.connect.parquet
 
 import monix.connect.parquet.test.User.ProtoDoc
+import monix.connect.parquet.test.user.{ProtoDoc =>sProtoDoc}
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.hadoop.{ParquetReader, ParquetWriter}
 import org.apache.parquet.proto.{ProtoParquetReader, ProtoReadSupport, ProtoWriteSupport}
 import org.scalacheck.Gen
+import scalapb.parquet.ScalaPBReadSupport
 
 trait ProtoParquetFixture extends ParquetFixture {
 
@@ -45,9 +48,9 @@ trait ProtoParquetFixture extends ParquetFixture {
    * read using the Protobuf schema it returns the type builder insted of the required type
    * and for when reading multiple events it just read the same event
    */
-  def protoParquetReaderWithSupport(file: String, conf: Configuration): ParquetReader[ProtoDoc] = {
-    val readSupport = new ProtoReadSupport[ProtoDoc]
-    ParquetReader.builder[ProtoDoc](readSupport, new Path(file)).withConf(conf).build()
+  def protoParquetReaderWithSupport(file: String, conf: Configuration): ParquetReader[sProtoDoc] = {
+    val readSupport = new ScalaPBReadSupport[sProtoDoc]
+    ParquetReader.builder[sProtoDoc](readSupport, new Path(file)).withConf(conf).build()
   }
 
   /*
@@ -66,10 +69,10 @@ trait ProtoParquetFixture extends ParquetFixture {
     ProtoParquetReader.builder[ProtoDoc](new Path(file)).withConf(conf).build()
   }
 
-  def fromProtoParquet(file: String, configuration: Configuration): List[ProtoDoc.Builder] = {
-    val reader: ParquetReader[ProtoDoc.Builder] = protoParquetReader(file, conf)
-    var proto: ProtoDoc.Builder = reader.read()
-    var result: List[ProtoDoc.Builder] = List.empty[ProtoDoc.Builder]
+  def fromProtoParquet(file: String, configuration: Configuration): List[sProtoDoc] = {
+    val reader: ParquetReader[sProtoDoc] = protoParquetReaderWithSupport(file, conf)
+    var proto: sProtoDoc = reader.read()
+    var result: List[sProtoDoc] = List.empty[sProtoDoc]
     while (proto != null) {
       result = result ::: proto :: Nil
       proto = reader.read()
