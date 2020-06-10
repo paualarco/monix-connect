@@ -43,6 +43,8 @@ object Dependencies {
 
   val Akka = AkkaMain ++ CommonProjectDependencies ++ CommonTestDependencies.map(_ % Test)
 
+  val Bytes = CommonProjectDependencies ++ CommonTestDependencies.map(_ % Test)
+  
   private val DynamoDbDependencies = Seq(
     "com.amazonaws" % "aws-java-sdk-core" % DependencyVersions.AWS,
     // "com.amazonaws"                       % "aws-java-sdk-dynamodb" % DependencyVersions.AWS, //todo compatibility with java sdk aws
@@ -61,6 +63,8 @@ object Dependencies {
   val Hdfs = HdfsDependecies ++ commonDependencies(hasIntegrationTest = false)
 
   private val ParquetDependecies = Seq(
+    "org.scala-lang" % "scala-reflect" % "2.12.10",
+    "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion,
     "io.monix" %% "monix-reactive" % DependencyVersions.Monix,
     "org.apache.parquet" % "parquet-avro" % "1.11.0",
     "org.apache.parquet" % "parquet-hadoop" % "1.11.0",
