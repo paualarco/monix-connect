@@ -31,6 +31,13 @@ object Dependencies {
     "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
   )
 
+  val BenchmarksDependencies = Seq(
+    "com.typesafe.akka" %% "akka-actor" % "2.6.6",
+    "dev.zio" %% "zio" % "1.0.0-RC20"
+  )
+
+  val Benchmarks = BenchmarksDependencies ++ CommonProjectDependencies
+
   private val CommonTestDependencies = Seq(
     "org.scalatest" %% "scalatest" % DependencyVersions.Scalatest,
     "org.scalacheck" %% "scalacheck" % DependencyVersions.Scalacheck,
@@ -99,4 +106,6 @@ object Dependencies {
   )
 
   val GCS = GcsDependencies  ++ CommonProjectDependencies ++ CommonTestDependencies
+
+
 }

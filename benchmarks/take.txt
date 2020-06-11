@@ -1,0 +1,105 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.TakeBenchmark.arrayTake
+# Parameters: (size = 500)
+
+# Run progress: 0.00% complete, ETA 00:02:00
+# Fork: 1 of 1
+# Warmup Iteration   1: 13331359.590 ops/s
+Iteration   1: 15328935.856 ops/s
+Iteration   2: 17672508.185 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.TakeBenchmark.arrayTake":
+  16500722.020 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.TakeBenchmark.bSTake
+# Parameters: (size = 500)
+
+# Run progress: 25.00% complete, ETA 00:01:32
+# Fork: 1 of 1
+# Warmup Iteration   1: 110104773.391 ops/s
+Iteration   1: 112812270.295 ops/s
+Iteration   2: 146979169.092 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.TakeBenchmark.bSTake":
+  129895719.693 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.TakeBenchmark.chunkTake
+# Parameters: (size = 500)
+
+# Run progress: 50.00% complete, ETA 00:01:01
+# Fork: 1 of 1
+# Warmup Iteration   1: 129777585.884 ops/s
+Iteration   1: 131922615.706 ops/s
+Iteration   2: 152589635.283 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.TakeBenchmark.chunkTake":
+  142256125.494 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.TakeBenchmark.obTake
+# Parameters: (size = 500)
+
+# Run progress: 75.00% complete, ETA 00:00:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 202511.441 ops/s
+Iteration   1: 220585.946 ops/s
+Iteration   2: 216071.926 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.TakeBenchmark.obTake":
+  218328.936 ops/s
+
+
+# Run complete. Total time: 00:02:02
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark                (size)   Mode  Cnt          Score   Error  Units
+TakeBenchmark.arrayTake     500  thrpt    2   16500722.020          ops/s
+TakeBenchmark.bSTake        500  thrpt    2  129895719.693          ops/s
+TakeBenchmark.chunkTake     500  thrpt    2  142256125.494          ops/s
+TakeBenchmark.obTake        500  thrpt    2     218328.936          ops/s

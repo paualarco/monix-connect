@@ -207,6 +207,16 @@ def monixConnector(
     .configs(IntegrationTest, IT)
     .settings(mimaSettings(s"monix-$connectorName"))
 
+lazy val benchmarks = project.in(file("benchmarks"))
+  .settings(sharedSettings)
+  .settings(
+    name := "benchmarks",
+    organization := "io.monix",
+    scalaVersion := "2.12.10",
+    libraryDependencies ++= Dependencies.Benchmarks
+  )
+  .enablePlugins(JmhPlugin)
+
 lazy val docs = project
   .in(file("monix-connect-docs"))
   .settings(
