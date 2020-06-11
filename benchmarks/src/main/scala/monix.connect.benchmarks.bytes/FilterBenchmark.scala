@@ -20,20 +20,10 @@ class FilterBenchmark {
   @Param(Array("500"))
   var size: Int = _
 
-  var array: Array[Byte] = _
-  var chunk: Chunk[Byte] = _
-  var byteString: ByteString = _
-  var observable: Observable[Byte] = _
+  var array: Array[Byte] = (1 to size).flatMap(_.toString.getBytes).toArray
+  var chunk: Chunk[Byte] = Chunk.fromArray(array)
+  var byteString: ByteString = ByteString.fromArray(array)
 
-  @Setup(Level.Trial)
-  def setup(): Unit = {
-    array = (1 to size).flatMap(_.toString.getBytes).toArray
-    chunk = Chunk.fromArray(array)
-    byteString = ByteString.fromArray(array)
-    observable = Observable.fromIterable(array)
-  }
-
-  //filter
   @Benchmark
   def arrayFilter: Array[Byte] = array.filter(a => a.isWhole)
 
@@ -42,8 +32,5 @@ class FilterBenchmark {
 
   @Benchmark
   def bSFilter: ByteString = byteString.filter(a => a.isWhole)
-
-  @Benchmark
-  def obFilter: List[Byte] = observable.filter(a => a.isWhole).toListL.runSyncUnsafe()
 
 }

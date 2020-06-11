@@ -1,0 +1,81 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.MkStringBenchmark.arrayMkString
+# Parameters: (size = 500)
+
+# Run progress: 0.00% complete, ETA 00:01:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 51989441.601 ops/s
+Iteration   1: 55745005.759 ops/s
+Iteration   2: 58400325.867 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.MkStringBenchmark.arrayMkString":
+  57072665.813 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.MkStringBenchmark.bSMkString
+# Parameters: (size = 500)
+
+# Run progress: 33.33% complete, ETA 00:01:01
+# Fork: 1 of 1
+# Warmup Iteration   1: 49153216.817 ops/s
+Iteration   1: 64305041.943 ops/s
+Iteration   2: 67683076.858 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.MkStringBenchmark.bSMkString":
+  65994059.400 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.MkStringBenchmark.chunkMkString
+# Parameters: (size = 500)
+
+# Run progress: 66.67% complete, ETA 00:00:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 48189146.352 ops/s
+Iteration   1: 74434089.427 ops/s
+Iteration   2: 77382847.320 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.MkStringBenchmark.chunkMkString":
+  75908468.373 ops/s
+
+
+# Run complete. Total time: 00:01:31
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark                        (size)   Mode  Cnt         Score   Error  Units
+MkStringBenchmark.arrayMkString     500  thrpt    2  57072665.813          ops/s
+MkStringBenchmark.bSMkString        500  thrpt    2  65994059.400          ops/s
+MkStringBenchmark.chunkMkString     500  thrpt    2  75908468.373          ops/s

@@ -1,0 +1,96 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.FindBenchmark.arrayFind
+# Parameters: (size = 500)
+
+# Run progress: 0.00% complete, ETA 00:03:00
+# Fork: 1 of 1
+# Warmup Iteration   1: 91311996.708 ops/s
+Iteration   1: 130694851.228 ops/s
+Iteration   2: 118760243.008 ops/s
+Iteration   3: 132811615.998 ops/s
+Iteration   4: 122977684.983 ops/s
+Iteration   5: 126816068.031 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.FindBenchmark.arrayFind":
+  126412092.649 ±(99.9%) 21935584.030 ops/s [Average]
+  (min, avg, max) = (118760243.008, 126412092.649, 132811615.998), stdev = 5696601.513
+  CI (99.9%): [104476508.619, 148347676.679] (assumes normal distribution)
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.FindBenchmark.bSFind
+# Parameters: (size = 500)
+
+# Run progress: 33.33% complete, ETA 00:02:02
+# Fork: 1 of 1
+# Warmup Iteration   1: 151184321.552 ops/s
+Iteration   1: 145568441.825 ops/s
+Iteration   2: 164942191.254 ops/s
+Iteration   3: 161217232.512 ops/s
+Iteration   4: 160922774.446 ops/s
+Iteration   5: 162924888.546 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.FindBenchmark.bSFind":
+  159115105.717 ±(99.9%) 29806326.948 ops/s [Average]
+  (min, avg, max) = (145568441.825, 159115105.717, 164942191.254), stdev = 7740608.454
+  CI (99.9%): [129308778.769, 188921432.665] (assumes normal distribution)
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.FindBenchmark.chunkFind
+# Parameters: (size = 500)
+
+# Run progress: 66.67% complete, ETA 00:01:00
+# Fork: 1 of 1
+# Warmup Iteration   1: 358384624.934 ops/s
+Iteration   1: 355815993.574 ops/s
+Iteration   2: 399255363.843 ops/s
+Iteration   3: 402313505.478 ops/s
+Iteration   4: 402758165.567 ops/s
+Iteration   5: 402336580.152 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.FindBenchmark.chunkFind":
+  392495921.723 ±(99.9%) 79140905.475 ops/s [Average]
+  (min, avg, max) = (355815993.574, 392495921.723, 402758165.567), stdev = 20552641.829
+  CI (99.9%): [313355016.248, 471636827.198] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:03:02
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark                (size)   Mode  Cnt          Score          Error  Units
+FindBenchmark.arrayFind     500  thrpt    5  126412092.649 ± 21935584.030  ops/s
+FindBenchmark.bSFind        500  thrpt    5  159115105.717 ± 29806326.948  ops/s
+FindBenchmark.chunkFind     500  thrpt    5  392495921.723 ± 79140905.475  ops/s

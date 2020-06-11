@@ -1,0 +1,93 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 4 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ZipBenchmark.arrayZip
+# Parameters: (size = 500)
+
+# Run progress: 0.00% complete, ETA 00:02:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 135467.709 ops/s
+Iteration   1: 147236.193 ops/s
+Iteration   2: 142966.954 ops/s
+Iteration   3: 144403.801 ops/s
+Iteration   4: 146819.863 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ZipBenchmark.arrayZip":
+  145356.703 ±(99.9%) 13080.404 ops/s [Average]
+  (min, avg, max) = (142966.954, 145356.703, 147236.193), stdev = 2024.207
+  CI (99.9%): [132276.299, 158437.106] (assumes normal distribution)
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 4 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ZipBenchmark.bSZip
+# Parameters: (size = 500)
+
+# Run progress: 33.33% complete, ETA 00:01:41
+# Fork: 1 of 1
+# Warmup Iteration   1: 142595.941 ops/s
+Iteration   1: 151307.551 ops/s
+Iteration   2: 141973.882 ops/s
+Iteration   3: 142024.262 ops/s
+Iteration   4: 141875.926 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ZipBenchmark.bSZip":
+  144295.405 ±(99.9%) 30210.896 ops/s [Average]
+  (min, avg, max) = (141875.926, 144295.405, 151307.551), stdev = 4675.170
+  CI (99.9%): [114084.509, 174506.301] (assumes normal distribution)
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 4 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ZipBenchmark.chunkZip
+# Parameters: (size = 500)
+
+# Run progress: 66.67% complete, ETA 00:00:50
+# Fork: 1 of 1
+# Warmup Iteration   1: 58207.443 ops/s
+Iteration   1: 63924.059 ops/s
+Iteration   2: 60649.606 ops/s
+Iteration   3: 60610.742 ops/s
+Iteration   4: 60356.624 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ZipBenchmark.chunkZip":
+  61385.258 ±(99.9%) 10969.315 ops/s [Average]
+  (min, avg, max) = (60356.624, 61385.258, 63924.059), stdev = 1697.514
+  CI (99.9%): [50415.943, 72354.572] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:02:32
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark              (size)   Mode  Cnt       Score       Error  Units
+ZipBenchmark.arrayZip     500  thrpt    4  145356.703 ± 13080.404  ops/s
+ZipBenchmark.bSZip        500  thrpt    4  144295.405 ± 30210.896  ops/s
+ZipBenchmark.chunkZip     500  thrpt    4   61385.258 ± 10969.315  ops/s

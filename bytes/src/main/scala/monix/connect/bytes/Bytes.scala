@@ -3,26 +3,20 @@ package monix.connect.bytes
 import scala.collection.IndexedSeqOptimized
 
 
-trait BytesLike[T] extends IndexedSeq[T] with IndexedSeqOptimized[T, Bytes[T]]{
+class Bytes[T] extends IndexedSeq[T] with IndexedSeqOptimized[T, Bytes[T]]{
 
-
-
+  /**
+    * The number of elements in the chunk.
+    */
+  override final def size: Int =
+    length
 }
 
-object Bytes {
-
-  def apply(bytes: Array[Byte]): Bytes = (bytes) = {
-    if (bytes.isEmpty)
-      bytes ++
-  }
 
 
 
-}
 
-class Bytes[T] {
 
-}
 
 
 

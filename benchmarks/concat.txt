@@ -1,0 +1,81 @@
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ConcatBenchmark.arrayConcat
+# Parameters: (size = 500)
+
+# Run progress: 0.00% complete, ETA 00:01:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 16231491.564 ops/s
+Iteration   1: 17932676.874 ops/s
+Iteration   2: 17574759.955 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ConcatBenchmark.arrayConcat":
+  17753718.415 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ConcatBenchmark.byteStringConcat
+# Parameters: (size = 500)
+
+# Run progress: 33.33% complete, ETA 00:01:01
+# Fork: 1 of 1
+# Warmup Iteration   1: 341465149.979 ops/s
+Iteration   1: 345210493.378 ops/s
+Iteration   2: 413358682.195 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ConcatBenchmark.byteStringConcat":
+  379284587.786 ops/s
+
+
+# JMH version: 1.21
+# VM version: JDK 1.8.0_221, Java HotSpot(TM) 64-Bit Server VM, 25.221-b11
+# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_221.jdk/Contents/Home/jre/bin/java
+# VM options: <none>
+# Warmup: 1 iterations, 10 s each
+# Measurement: 2 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: monix.connect.benchmarks.bytes.ConcatBenchmark.chunkConcat
+# Parameters: (size = 500)
+
+# Run progress: 66.67% complete, ETA 00:00:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 370982695.876 ops/s
+Iteration   1: 372340250.519 ops/s
+Iteration   2: 404427128.138 ops/s
+
+
+Result "monix.connect.benchmarks.bytes.ConcatBenchmark.chunkConcat":
+  388383689.329 ops/s
+
+
+# Run complete. Total time: 00:01:31
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+Benchmark                         (size)   Mode  Cnt          Score   Error  Units
+ConcatBenchmark.arrayConcat          500  thrpt    2   17753718.415          ops/s
+ConcatBenchmark.byteStringConcat     500  thrpt    2  379284587.786          ops/s
+ConcatBenchmark.chunkConcat          500  thrpt    2  388383689.329          ops/s

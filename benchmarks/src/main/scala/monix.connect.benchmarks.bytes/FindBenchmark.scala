@@ -11,11 +11,11 @@ import zio.Chunk
 @State(Scope.Thread)
 @BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Measurement(iterations = 2)
+@Measurement(iterations = 5)
 @Warmup(iterations = 1)
 @Fork(1)
 @Threads(1)
-class MkStringBenchmark {
+class FindBenchmark {
 
   @Param(Array("500"))
   var size: Int = _
@@ -24,14 +24,13 @@ class MkStringBenchmark {
   var chunk: Chunk[Byte] = Chunk.fromArray(array)
   var byteString: ByteString = ByteString.fromArray(array)
 
-  //mkstring
   @Benchmark
-  def arrayMkString: String = array.mkString
+  def arrayFind: Option[Byte] = array.find(b => b == array.last)
 
   @Benchmark
-  def chunkMkString: String = chunk.mkString
+  def chunkFind: Option[Byte] = chunk.find(b => b == chunk.last)
 
   @Benchmark
-  def bSMkString: String = byteString.mkString
+  def bSFind: Option[Byte] = byteString.find(b => b == byteString.last)
 
 }

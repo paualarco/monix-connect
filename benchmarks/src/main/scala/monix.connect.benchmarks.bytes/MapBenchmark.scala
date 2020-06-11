@@ -34,18 +34,9 @@ class MapBenchmark {
   @Param(Array("500"))
   var size: Int = _
 
-  var array: Array[Byte] = _
-  var chunk: Chunk[Byte] = _
-  var byteString: ByteString = _
-  var observable: Observable[Byte] = _
-
-  @Setup(Level.Trial)
-  def setup(): Unit = {
-    array = (1 to size).flatMap(_.toString.getBytes).toArray
-    chunk = Chunk.fromArray(array)
-    byteString = ByteString.fromArray(array)
-    observable = Observable.fromIterable(array)
-  }
+  var array: Array[Byte] = (1 to size).flatMap(_.toString.getBytes).toArray
+  var chunk: Chunk[Byte] = Chunk.fromArray(array)
+  var byteString: ByteString = ByteString.fromArray(array)
 
   //map
   @Benchmark
@@ -56,8 +47,5 @@ class MapBenchmark {
 
   @Benchmark
   def bSMap: IndexedSeq[Int] = byteString.map(_.toString).map(_.toInt)
-
-  @Benchmark
-  def obMap: List[Byte] = observable.flatMap(_ => observable ++ observable).toListL.runSyncUnsafe()
 
 }
