@@ -5,30 +5,30 @@ import java.nio.file.Path
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.Storage._
-import com.google.cloud.storage.{StorageOptions, Storage}
+import com.google.cloud.storage.{Storage, StorageOptions}
 import monix.connect.gcs.configuration.GcsBucketInfo
 import monix.connect.gcs.components.Paging
-import monix.connect.gcs.configuration.GcsBucketInfo.{Location, Metadata}
+import monix.connect.gcs.configuration.GcsBucketInfo.Metadata
 import monix.eval.Task
 import monix.reactive.Observable
 
 final class GcsStorage(underlying: Storage) extends Paging {
 
   /**
-   * Creates a new [[GcsBucket]] from the give config and options.
-   */
+    * Creates a new [[GcsBucket]] from the give config and options.
+    */
   def createBucket(name: String,
-                   location: Location,
+                   location: GcsBucketInfo.Locations.Location,
                    metadata: Option[Metadata],
                    options: BucketTargetOption*)
   : Task[GcsBucket] = {
-    Task(underlying.create(GcsBucketInfo.toJava(name, location, metadata), options: _*))
+    Task(underlying.create(GcsBucketInfo.withMetadata(name, location, metadata), options: _*))
       .map(GcsBucket.apply)
   }
 
   /**
-   * Returns the specified bucket or None if it doesn't exist.
-   */
+    * Returns the specified bucket or None if it doesn't exist.
+    */
   def getBucket(name: String, options: BucketGetOption*): Task[Option[GcsBucket]] = {
     Task(underlying.get(name, options: _*)).map { optBucket =>
       Option(optBucket).map(GcsBucket.apply)
@@ -36,8 +36,8 @@ final class GcsStorage(underlying: Storage) extends Paging {
   }
 
   /**
-   * Returns an [[Observable]] of all buckets attached to this storage instance.
-   */
+    * Returns an [[Observable]] of all buckets attached to this storage instance.
+    */
   def listBuckets(options: BucketListOption *): Observable[GcsBucket] =
     walk(Task(underlying.list(options: _*))).map(GcsBucket.apply)
 }
@@ -53,7 +53,7 @@ object GcsStorage {
   }
 
   def create(projectId: String, credentials: Path): GcsStorage = {
-    new GcsStorage(StorageOptions
+     new GcsStorage(StorageOptions
       .newBuilder()
       .setProjectId(projectId)
       .setCredentials(GoogleCredentials.fromStream(new FileInputStream(credentials.toFile)))

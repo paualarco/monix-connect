@@ -2,7 +2,6 @@ package monix.connect.gcs
 
 import java.net.URL
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
 import com.google.cloud.storage.Blob.BlobSourceOption
 import com.google.cloud.storage.Storage.{BlobTargetOption, SignUrlOption}
@@ -117,19 +116,20 @@ final class GcsBlob(underlying: Blob)
    * Updates the blob's information. Bucket or blob's name cannot be changed by this method. If you
    * want to rename the blob or move it to a different bucket use the [[copyTo]] and [[delete]] operations.
    */
-  def update(metadata: GcsBlobInfo.Metadata, options: BlobTargetOption*): Task[GcsBlob] = {
-    val update = GcsBlobInfo.toJava(underlying.getBucket, underlying.getName, Some(metadata))
-    Task(underlying.getStorage.update(update, options: _*))
+  def updateMetadata(metadata: GcsBlobInfo.Metadata, options: BlobTargetOption*): Task[GcsBlob] = {
+    val updated = GcsBlobInfo.withMetadata(underlying.getBucket, underlying.getName, Some(metadata))
+    Task(underlying.getStorage.update(updated, options: _*))
       .map(GcsBlob.apply)
   }
 
+  /**
+    * Deletes this blob.
+    */
   def delete(options: BlobSourceOption*): Task[Boolean] =
     Task(underlying.delete(options: _*))
 
   /**
    * Copies this blob to the target Blob.
-   *
-   * $copyToNote
    */
   def copyTo(targetBlob: BlobId, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBlob, options: _*))
@@ -138,8 +138,6 @@ final class GcsBlob(underlying: Blob)
 
   /**
    * Copies this blob to the target Bucket.
-   *
-   * $copyToNote
    */
   def copyTo(targetBucket: String, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBucket, options: _*))
@@ -148,8 +146,6 @@ final class GcsBlob(underlying: Blob)
 
   /**
    * Copies this blob to the target Blob in the target Bucket.
-   *
-   * $copyToNote
    */
   def copyTo(targetBucket: String, targetBlob: String, options: BlobSourceOption*): Task[GcsBlob] =
     Task.evalAsync(underlying.copyTo(targetBucket, targetBlob, options: _*))
