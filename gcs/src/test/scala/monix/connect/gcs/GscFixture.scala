@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 trait GscFixture {
 
-  val genBool = Gen.oneOf(true, false)
+  val genBool: Gen[Boolean] = Gen.oneOf(true, false)
 
   val genAcl: Gen[Acl] = for {
     entity <- Gen.oneOf[Entity](User.ofAllUsers(), new Group("sample@email.com"), new Project(Project.ProjectRole.OWNERS, "id"))
@@ -21,7 +21,15 @@ trait GscFixture {
     Acl.of(entity , role)
   }
 
-  val genStorageClass: Gen[StorageClass] = Gen.oneOf(StorageClass.ARCHIVE, StorageClass.COLDLINE, StorageClass.DURABLE_REDUCED_AVAILABILITY, StorageClass.MULTI_REGIONAL, StorageClass.NEARLINE, StorageClass.REGIONAL, StorageClass.STANDARD)
+  val genStorageClass: Gen[StorageClass] = Gen.oneOf(
+    StorageClass.ARCHIVE,
+    StorageClass.COLDLINE,
+    StorageClass.DURABLE_REDUCED_AVAILABILITY,
+    StorageClass.MULTI_REGIONAL,
+    StorageClass.NEARLINE,
+    StorageClass.REGIONAL,
+    StorageClass.STANDARD
+  )
 
   val genBlobInfo: Gen[BlobInfo] = for {
     bucket <- Gen.alphaLowerStr
@@ -48,10 +56,10 @@ trait GscFixture {
       contentEncoding.foreach(builder.setContentEncoding)
       cacheControl.foreach(builder.setCacheControl)
       crc32c.foreach(builder.setCrc32c)
-      crc32cFromHexString.foreach(builder.setCrc32cFromHexString) //todo uncomment (currently fleaky)
+      crc32cFromHexString.foreach(builder.setCrc32cFromHexString)
       md5.foreach(builder.setMd5)
-      md5FromHexString.foreach(builder.setMd5FromHexString) //todo uncomment (currently fleaky)
-      storageClass.foreach(builder.setStorageClass(_))
+      md5FromHexString.foreach(builder.setMd5FromHexString)
+      storageClass.foreach(builder.setStorageClass)
       temporaryHold.foreach(builder.setEventBasedHold(_))
       eventBasedHold.foreach(b => builder.setEventBasedHold(b))
       builder.setAcl(acl.asJava)
@@ -59,16 +67,14 @@ trait GscFixture {
       builder.build()
   }
 
-  val genBlobInfoMetadata = for {
+  val genBlobInfoMetadata: Gen[GcsBlobInfo.Metadata] = for {
     contentType <- Gen.option(Gen.alphaLowerStr)
     contentDisposition <- Gen.option(Gen.alphaLowerStr)
     contentLanguage <- Gen.option(Gen.alphaLowerStr)
     contentEncoding <- Gen.option(Gen.alphaLowerStr)
     cacheControl <- Gen.option(Gen.alphaLowerStr)
-    crc32c <- Gen.option(Gen.alphaLowerStr) //
-    crc32cFromHexString <- Gen.option("0001")
+    crc32c <- Gen.option(Gen.alphaLowerStr)
     md5 <- Gen.option(Gen.alphaLowerStr)
-    md5FromHexString <- Gen.option("0001")
     storageClass <- Gen.option(genStorageClass)
     temporaryHold <- Gen.option(Gen.oneOf(true, false))
     eventBasedHold <- Gen.option(Gen.oneOf(true, false))
@@ -80,9 +86,9 @@ trait GscFixture {
       contentEncoding = contentEncoding,
       cacheControl = cacheControl,
       crc32c = crc32c,
-      crc32cFromHexString = crc32cFromHexString,
+      crc32cFromHexString = None,
       md5 = md5,
-      md5FromHexString = md5FromHexString,
+      md5FromHexString = None,
       storageClass = storageClass,
       temporaryHold = temporaryHold,
       eventBasedHold = eventBasedHold,

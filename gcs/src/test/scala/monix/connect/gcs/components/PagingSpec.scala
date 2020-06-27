@@ -27,11 +27,11 @@ class PagingSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
 
       when(page1.hasNextPage).thenReturn(true)
       when(page1.getNextPage).thenReturn(page2)
-      when(page0.iterateAll()).thenReturn(List("c").asJava)
+      when(page1.iterateAll()).thenReturn(List("c").asJava)
 
       when(page2.hasNextPage).thenReturn(false)
       when(page2.getNextPage).thenReturn(null)
-      when(page0.iterateAll()).thenReturn(List("d").asJava)
+      when(page2.iterateAll()).thenReturn(List("d").asJava)
 
 
       //when
@@ -46,9 +46,7 @@ class PagingSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
       verify(page2, never()).getNextPage
 
       println("Pages: " + pages.mkString)
-      pages.size shouldBe 3 //todo currently it fails since it only returns the values from the last page "d', is it the expected behaviour? I thought it had to return List("a","b","c","d")
-
+      pages.size shouldBe 4
     }
   }
-
 }

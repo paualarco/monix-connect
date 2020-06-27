@@ -17,10 +17,10 @@ object GcsBlobInfo {
       options.contentLanguage.foreach(builder.setContentLanguage)
       options.contentEncoding.foreach(builder.setContentEncoding)
       options.cacheControl.foreach(builder.setCacheControl)
-      options.crc32c.foreach(builder.setCrc32c)
-      options.crc32cFromHexString.foreach(builder.setCrc32cFromHexString)
-      options.md5.foreach(builder.setMd5)
-      options.md5FromHexString.foreach(builder.setMd5FromHexString)
+      options.crc32c.foreach(x => builder.setCrc32c(x))
+      options.crc32cFromHexString.foreach(x => builder.setCrc32cFromHexString(x))
+      options.md5.foreach(x => builder.setMd5(x))
+      options.md5FromHexString.foreach(x => builder.setMd5FromHexString(x))
       options.storageClass.foreach(builder.setStorageClass)
       options.temporaryHold.foreach(builder.setTemporaryHold(_))
       options.eventBasedHold.foreach(builder.setEventBasedHold(_))
@@ -35,8 +35,8 @@ object GcsBlobInfo {
     // these fields can't be initialized directly below when creating other fields since
     // the default value of the option type would be applied, thus the option would not be `None`.
     val cacheControl = Option(blobInfo.getCacheControl)
-    val componentCount =  Option(blobInfo.getComponentCount).map(_.intValue())
-    val generation =  Option(blobInfo.getGeneration).map(_.longValue)
+    val componentCount = Option(blobInfo.getComponentCount).map(_.intValue())
+    val generation = Option(blobInfo.getGeneration).map(_.longValue)
     val metaGeneration = Option(blobInfo.getMetageneration).map(_.longValue)
     val temporaryHold = Option(blobInfo.getTemporaryHold).map(_.booleanValue())
     val eventBasedHold = Option(blobInfo.getEventBasedHold).map(_.booleanValue())
@@ -50,7 +50,7 @@ object GcsBlobInfo {
         List.empty[Acl]
       },
       owner = Option(blobInfo.getOwner),
-      size = blobInfo.getSize(),
+      size = Option(blobInfo.getSize()),
       contentType = Option(blobInfo.getContentType),
       contentEncoding = Option(blobInfo.getContentEncoding),
       contentDisposition = Option(blobInfo.getContentDisposition),
@@ -70,7 +70,7 @@ object GcsBlobInfo {
       deleteTime = Option(blobInfo.getDeleteTime).map(Instant.ofEpochMilli(_)),
       updateTime = Option(blobInfo.getUpdateTime).map(Instant.ofEpochMilli(_)),
       createTime = Option(blobInfo.getUpdateTime).map(Instant.ofEpochMilli(_)),
-      isDirectory = blobInfo.isDirectory,
+      isDirectory = Option(blobInfo.isDirectory),
       customerEncryption = Option(blobInfo.getCustomerEncryption),
       storageClass = Option(blobInfo.getStorageClass),
       kmsKeyName = Option(blobInfo.getKmsKeyName),
@@ -100,33 +100,33 @@ object GcsBlobInfo {
 private[gcs] case class GcsBlobInfo(
   name: String,
   bucket: String,
-  generatedId: Option[String],
-  selfLink: Option[String],
-  cacheControl: Option[String],
-  acl: List[Acl] = List.empty,
-  owner: Option[Acl.Entity],
-  size: Long,
-  contentType: Option[String],
-  contentEncoding: Option[String],
-  contentDisposition: Option[String],
-  contentLanguage: Option[String],
-  componentCount: Option[Int],
-  etag: Option[String],
-  md5: Option[String],
-  md5ToHexString: Option[String],
-  crc32c: Option[String],
-  crc32cToHexString: Option[String],
-  mediaLink: Option[String],
+  generatedId: Option[String] = None,
+  selfLink: Option[String] = None,
+  cacheControl: Option[String] = None,
+  acl: List[Acl] = List.empty[Acl],
+  owner: Option[Acl.Entity] = None,
+  size: Option[Long] = None,
+  contentType: Option[String] = None,
+  contentEncoding: Option[String] = None,
+  contentDisposition: Option[String] = None,
+  contentLanguage: Option[String] = None,
+  componentCount: Option[Int] = None,
+  etag: Option[String] = None,
+  md5: Option[String] = None,
+  md5ToHexString: Option[String] = None,
+  crc32c: Option[String] = None,
+  crc32cToHexString: Option[String] = None,
+  mediaLink: Option[String] = None,
   metadata: Map[String, String] = Map.empty,
-  generation: Option[Long],
-  metageneration: Option[Long],
-  deleteTime: Option[Instant],
-  updateTime: Option[Instant],
-  createTime: Option[Instant],
-  isDirectory: Boolean,
-  customerEncryption: Option[CustomerEncryption],
-  storageClass: Option[StorageClass],
-  kmsKeyName: Option[String],
-  eventBasedHold: Option[Boolean],
-  temporaryHold: Option[Boolean],
-  retentionExpirationTime: Option[Instant])
+  generation: Option[Long] = None,
+  metageneration: Option[Long] = None,
+  deleteTime: Option[Instant]= None,
+  updateTime: Option[Instant]= None,
+  createTime: Option[Instant]= None,
+  isDirectory: Option[Boolean] = None,
+  customerEncryption: Option[CustomerEncryption] = None,
+  storageClass: Option[StorageClass] = None,
+  kmsKeyName: Option[String] = None,
+  eventBasedHold: Option[Boolean] = None,
+  temporaryHold: Option[Boolean] = None,
+  retentionExpirationTime: Option[Instant] = None)

@@ -1,5 +1,8 @@
 package monix.connect.gcs.configuration
 
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+
 import com.google.cloud.ReadChannel
 import com.google.cloud.storage.{BlobInfo, Storage, Blob => GoogleBlob, Option => _}
 import monix.connect.gcs.GscFixture
@@ -17,13 +20,13 @@ class GcsBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matcher
   val mockStorage: Storage = mock[Storage]
   val readChannel: ReadChannel = mock[ReadChannel]
 
-  s"${GcsBlobInfo}" can {
+  s"$GcsBlobInfo" can {
 
     "be created from default java BlobInfo" in {
       //given
       val bucketName = "sampleBucket"
       val blobName = "sampleBlob"
-      val blobInfo: BlobInfo =BlobInfo.newBuilder(bucketName, blobName).build()
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(bucketName, blobName).build()
 
       //when
       val gcsBlobInfo: GcsBlobInfo = GcsBlobInfo.fromJava(blobInfo)
@@ -58,17 +61,13 @@ class GcsBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matcher
       Option(blobInfo.getContentLanguage) shouldBe metadata.contentLanguage
       Option(blobInfo.getContentEncoding) shouldBe metadata.contentEncoding
       Option(blobInfo.getCacheControl) shouldBe metadata.cacheControl
-      //Option(blobInfo.getCrc32c) shouldBe metadata.crc32c todo revise why value is not forwarded
-      //Option(blobInfo.getCrc32cToHexString) shouldBe metadata.crc32cFromHexString.map(_.toLowerCase) //todo revise
-      //Option(blobInfo.getMd5) shouldBe metadata.md5 todo revise why value is not forwarded
-      Option(blobInfo.getMd5ToHexString) shouldBe metadata.md5FromHexString.map(_.toLowerCase)
+      Option(blobInfo.getCrc32c) shouldBe metadata.crc32c
+      Option(blobInfo.getMd5) shouldBe metadata.md5
       Option(blobInfo.getStorageClass) shouldBe metadata.storageClass
       Option(blobInfo.getTemporaryHold) shouldBe metadata.temporaryHold
       Option(blobInfo.getEventBasedHold) shouldBe metadata.eventBasedHold
       blobInfo.getAcl shouldBe metadata.acl.asJava
       blobInfo.getMetadata shouldBe metadata.metadata.asJava
-
-
     }
   }
 
@@ -96,7 +95,7 @@ class GcsBlobInfoSpec extends AnyWordSpecLike with IdiomaticMockito with Matcher
     Option(blobInfo.getDeleteTime) shouldBe gcsBlobInfo.deleteTime
     Option(blobInfo.getUpdateTime) shouldBe gcsBlobInfo.updateTime
     Option(blobInfo.getCreateTime) shouldBe gcsBlobInfo.createTime
-    blobInfo.isDirectory shouldBe gcsBlobInfo.isDirectory
+    Option(blobInfo.isDirectory) shouldBe gcsBlobInfo.isDirectory
     Option(blobInfo.getCustomerEncryption) shouldBe gcsBlobInfo.customerEncryption
     Option(blobInfo.getStorageClass) shouldBe gcsBlobInfo.storageClass
     Option(blobInfo.getKmsKeyName) shouldBe gcsBlobInfo.kmsKeyName
