@@ -80,8 +80,8 @@ final class GcsBlob(underlying: Blob)
    *   } yield println("File downloaded Successfully")
    * }}}
    */
-  def downloadToFile(name: String, path: Path, chunkSize: Int = 4096): Task[Unit] = {
-    val blobId: BlobId = BlobId.of(underlying.getName, name)
+  def downloadToFile(path: Path, chunkSize: Int = 4096): Task[Unit] = { //todo removed
+    val blobId: BlobId = BlobId.of(underlying.getBucket, underlying.getName)
     (for {
       bos   <- openFileOutputStream(path)
       bytes <- download(underlying.getStorage, underlying.getName, blobId, chunkSize)

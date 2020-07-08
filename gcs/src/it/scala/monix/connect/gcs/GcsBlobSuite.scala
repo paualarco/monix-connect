@@ -1,12 +1,10 @@
 package monix.connect.gcs
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 import java.nio.channels.Channels
+import java.nio.file.Path
 
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.storage.{Acl, Bucket, BucketInfo, Storage, StorageOptions, Option => _}
-import monix.connect.gcs.GcsBucket
-import monix.connect.gcs.configuration.GcsBucketInfo
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions, Option => _}
 import monix.execution.Scheduler.Implicits.global
 import org.mockito.Mockito.{times, verify}
 import org.mockito.MockitoSugar.when
@@ -16,45 +14,81 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import com.google.cloud.{ByteArray, NoCredentials}
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import monix.reactive.Observable
+import com.google.cloud.storage.BlobId
+import com.google.cloud.storage.BlobInfo
+import monix.eval.Task
+import org.scalacheck.Gen
 
 import scala.jdk.CollectionConverters._
 
 class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
 
-// val opts = StorageOptions
-//   .newBuilder()
-//   .setProjectId("projectId")
-//   .setCredentials(NoCredentials.getInstance())
-//   .setHost("http://127.0.0.1:9000").build()
+  val storage = LocalStorageHelper.getOptions.getService
 
-// new GcsStorage(opts.getService).createBucket("sample", "DEFAULT_REGION", None).runSyncUnsafe()
-//  val gcsStorage: GcsStorage = GcsStorage.create()
+  val nonEmptyString: Gen[String] = Gen.nonEmptyListOf(Gen.alphaChar).map(chars => "test-" + chars.mkString.take(20))
+  s"${GcsBlob}" should {
 
-//  gcsStorage.createBucket("bucketA", GcsBucketInfo.Locations.`EUROPE-WEST3`, None).runSyncUnsafe()
+    "return true if exists" in {
+      //given
+      val blobPath = nonEmptyString.sample.get
+      val testBucketName = nonEmptyString.sample.get
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
+      val blob: Blob = storage.create(blobInfo, content)
+      val gcsBlob = new GcsBlob(blob)
 
-    val storage = LocalStorageHelper.getOptions.getService
+      //when
+      val t = gcsBlob.exists()
 
-  import com.google.cloud.storage.BlobId
-  import com.google.cloud.storage.BlobInfo
+      //then
+      t.runSyncUnsafe() shouldBe true
+    }
 
-  val blobPath = "/blob/path"
-  val testBucketName = "test-bucket"
-  val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+    "return delete if exists" in {
+      //given
+      val blobPath = nonEmptyString.sample.get
+      val testBucketName = nonEmptyString.sample.get
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
+      val blob: Blob = storage.create(blobInfo, content)
+      val gcsBlob = new GcsBlob(blob)
+      val existedBefore = gcsBlob.exists().runSyncUnsafe()
 
-  import com.google.cloud.storage.BlobInfo
-  import java.nio.charset.StandardCharsets
-  import java.util.stream.StreamSupport
+      //when
+      val t = gcsBlob.delete()
 
-  val blob = storage.create(blobInfo, "randomContent".getBytes(StandardCharsets.UTF_8))
-  println("Listed buckets" + storage.list(testBucketName).getValues.asScala.toList.mkString)
+      //then
+      val deleted = t.runSyncUnsafe()
+      val existsAfterDeletion = gcsBlob.exists().runSyncUnsafe()
+      existedBefore shouldBe true
+      deleted shouldBe true
+      existsAfterDeletion shouldBe false
+    }
 
-  val gcsBlob = new GcsBlob(blob)
+    "download to file" in {
+      //given
+      val blobPath = "nonEmptyString.sample.get"
+      val testBucketName = nonEmptyString.sample.get
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
+      val blob: Blob = storage.create(blobInfo, content)
 
+      val path: Path = new File("gcs/test.txt").toPath
+      val gcsBlob = new GcsBlob(blob)
 
-  println("Exist: " + ByteArray.copyFrom(blob.getContent()).toStringUtf8)
+      //when
+      val t: Task[Unit] = gcsBlob.downloadToFile(path)
 
-  val readChannel = storage.reader(BlobId.of(testBucketName, blobPath ))
-  println("Read conent: " + ByteArray.copyFrom(Observable.fromInputStreamUnsafe(Channels.newInputStream(readChannel)).headL.runSyncUnsafe()).toStringUtf8)
+      //then
+
+      t.runSyncUnsafe()
+    }
+
+  }
+  //println("Exist: " + ByteArray.copyFrom(blob.getContent()).toStringUtf8)
+
+  //val readChannel = storage.reader(BlobId.of(testBucketName, blobPath ))
+  //println("Read conent: " + ByteArray.copyFrom(Observable.fromInputStreamUnsafe(Channels.newInputStream(readChannel)).headL.runSyncUnsafe()).toStringUtf8)
   //val gcs = new GcsStorage(storage).createBucket("sample", "DEFAULT_REGION", None).runSyncUnsafe()
 
    //println("Bucket info: " + gcs.bucketInfo)

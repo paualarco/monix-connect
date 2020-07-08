@@ -9,10 +9,10 @@ import monix.reactive.Observable
 
 trait StorageDownloader {
 
-  private def openReadChannel(storage: Storage, bucket: String, blobId: BlobId, chunkSize: Int): Observable[ReadChannel] = {
+  private def openReadChannel(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[ReadChannel] = {
     Observable.resource {
       Task {
-        val reader = storage.reader(bucket, blobId.getName)
+        val reader = storage.reader(blobId.getBucket, blobId.getName)
         reader.setChunkSize(chunkSize)
         reader
       }
@@ -22,7 +22,7 @@ trait StorageDownloader {
   }
 
   protected def download(storage: Storage, bucket: String, blobId: BlobId, chunkSize: Int): Observable[Array[Byte]] = {
-    openReadChannel(storage, bucket, blobId, chunkSize).flatMap { channel =>
+    openReadChannel(storage, blobId, chunkSize).flatMap { channel =>
       Observable.fromInputStreamUnsafe(Channels.newInputStream(channel), chunkSize)
     }.takeWhile(_.nonEmpty)
   }
