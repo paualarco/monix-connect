@@ -91,7 +91,8 @@ object Dependencies {
 
   private val GcsDependencies = Seq(
     "org.typelevel"     %% "cats-core"            % DependencyVersions.Cats,
-    "com.google.cloud"   % "google-cloud-storage" % "1.107.0"
+    "com.google.cloud"   % "google-cloud-storage" % "1.107.0",
+    "com.google.cloud" % "google-cloud-nio" % "0.121.2"
   )
 
   val GCS = GcsDependencies  ++ CommonProjectDependencies ++ CommonTestDependencies

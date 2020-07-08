@@ -4,7 +4,7 @@ import java.util
 
 import com.google.cloud.storage.Bucket.BucketSourceOption
 import com.google.cloud.storage.Storage.BucketTargetOption
-import com.google.cloud.storage.{Acl, Bucket => GoogleBucket, Storage => GoogleStorage, Option => _}
+import com.google.cloud.storage.{Acl, Bucket, Option => _}
 import monix.execution.Scheduler.Implicits.global
 import org.mockito.Mockito.{times, verify}
 import org.mockito.MockitoSugar.when
@@ -13,8 +13,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class GcsBucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar {
-  val underlying: GoogleBucket = mock[GoogleBucket]
-  val storage: GoogleStorage = mock[GoogleStorage]
+  val underlying: Bucket = mock[Bucket]
   val bucket: GcsBucket = GcsBucket(underlying)
 
   s"$GcsBucket" should {
@@ -36,7 +35,7 @@ class GcsBucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers 
       "correctly returns some bucket" in {
         //given
         val bucketSourceOption: BucketSourceOption = mock[BucketSourceOption]
-        val googleBucket = mock[GoogleBucket]
+        val googleBucket = mock[Bucket]
         when(underlying.reload(bucketSourceOption)).thenReturn(googleBucket)
 
         //when
@@ -65,7 +64,7 @@ class GcsBucketSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers 
     "implement an async update operation that correctly returns some bucket" in {
       // given
       val bucketTargetOption: BucketTargetOption = mock[BucketTargetOption]
-      val googleBucket = mock[GoogleBucket]
+      val googleBucket = mock[Bucket]
       when(underlying.update(bucketTargetOption)).thenReturn(googleBucket)
 
       //when
