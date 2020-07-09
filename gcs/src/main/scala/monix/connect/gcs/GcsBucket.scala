@@ -65,8 +65,9 @@ final class GcsBucket private (underlying: Bucket)
     *
     *
     */
-  def download(name: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
-    download(underlying.getStorage, underlying.getName, BlobId.of(underlying.getName, name), chunkSize)
+  def download(blobName: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
+    val blobId: BlobId = BlobId.of(underlying.getName, blobName)
+    download(underlying.getStorage, blobId, chunkSize)
   }
 
   /**
@@ -92,11 +93,11 @@ final class GcsBucket private (underlying: Bucket)
     *   } yield println("File downloaded Successfully")
     * }}}
     */
-  def downloadToFile(name: String, path: Path, chunkSize: Int = 4096): Task[Unit] = {
-    val blobId = BlobId.of(underlying.getName, name)
+  def downloadToFile(blobName: String, path: Path, chunkSize: Int = 4096): Task[Unit] = {
+    val blobId = BlobId.of(underlying.getName, blobName)
     (for {
       bos   <- openFileOutputStream(path)
-      bytes <- download(underlying.getStorage, underlying.getName, blobId, chunkSize)
+      bytes <- download(underlying.getStorage, blobId, chunkSize)
     } yield bos.write(bytes)).completedL
   }
 

@@ -28,7 +28,7 @@ class StorageDownloaderSpec extends AnyWordSpecLike with IdiomaticMockito with M
     when(mockStorage.reader(bucket, blobName)).thenReturn(readChannel)
 
     //when
-    download(mockStorage, bucket, BlobId.of(blobName, blobName), chunkSize).toListL.runSyncUnsafe().flatten
+    download(mockStorage, BlobId.of(blobName, blobName), chunkSize).toListL.runSyncUnsafe().flatten
 
     //then
     verify(mockStorage, times(1)).reader(bucket, blobName)

@@ -21,7 +21,7 @@ trait StorageDownloader {
     }
   }
 
-  protected def download(storage: Storage, bucket: String, blobId: BlobId, chunkSize: Int): Observable[Array[Byte]] = {
+  protected def download(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[Array[Byte]] = {
     openReadChannel(storage, blobId, chunkSize).flatMap { channel =>
       Observable.fromInputStreamUnsafe(Channels.newInputStream(channel), chunkSize)
     }.takeWhile(_.nonEmpty)

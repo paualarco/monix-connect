@@ -4,11 +4,11 @@ import java.net.URL
 import java.nio.file.Path
 
 import com.google.cloud.storage.Blob.BlobSourceOption
-import com.google.cloud.storage.Storage.{BlobTargetOption, SignUrlOption}
-import com.google.cloud.storage.{Acl, BlobId, Blob, Option => _}
+import com.google.cloud.storage.Storage.{BlobTargetOption, BlobWriteOption, SignUrlOption}
+import com.google.cloud.storage.{Acl, Blob, BlobId, Option => _}
 import com.google.cloud.{storage => google}
 import monix.connect.gcs.configuration.GcsBlobInfo
-import monix.connect.gcs.components.{FileIO, StorageDownloader}
+import monix.connect.gcs.components.{FileIO, GcsWriterConsumer, StorageDownloader}
 import monix.eval.Task
 import monix.reactive.Observable
 
@@ -53,8 +53,9 @@ final class GcsBlob(underlying: Blob)
    * }}}
    *
    */
-  def download(name: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
-    download(underlying.getStorage, underlying.getName, BlobId.of(underlying.getName, name), chunkSize)
+  def download(chunkSize: Int = 4096): Observable[Array[Byte]] = {
+    val blobId: BlobId = BlobId.of(underlying.getBucket, underlying.getName)
+    download(underlying.getStorage, blobId, chunkSize)
   }
 
   /**
@@ -80,11 +81,11 @@ final class GcsBlob(underlying: Blob)
    *   } yield println("File downloaded Successfully")
    * }}}
    */
-  def downloadToFile(path: Path, chunkSize: Int = 4096): Task[Unit] = { //todo removed
+  def downloadToFile(path: Path, chunkSize: Int = 4096): Task[Unit] = {
     val blobId: BlobId = BlobId.of(underlying.getBucket, underlying.getName)
     (for {
       bos   <- openFileOutputStream(path)
-      bytes <- download(underlying.getStorage, underlying.getName, blobId, chunkSize)
+      bytes <- download(underlying.getStorage, blobId, chunkSize)
     } yield bos.write(bytes)).completedL
   }
 
@@ -101,6 +102,13 @@ final class GcsBlob(underlying: Blob)
     Task(underlying.reload(options: _*)).map { optBlob =>
       Option(optBlob).map(GcsBlob.apply)
     }
+  }
+
+  def upload(metadata: Option[GcsBlobInfo.Metadata] = None,
+             chunkSize: Int = 4096,
+             options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsWriterConsumer = {
+    val blobInfo = GcsBlobInfo.withMetadata(underlying.getBucket, underlying.getName, metadata)
+    new GcsWriterConsumer(underlying.getStorage, blobInfo, chunkSize, options: _*)
   }
 
   /**
