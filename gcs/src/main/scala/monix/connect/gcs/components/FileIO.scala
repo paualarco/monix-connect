@@ -1,17 +1,18 @@
 package monix.connect.gcs.components
 
 import java.io.{BufferedInputStream, BufferedOutputStream, FileInputStream, FileOutputStream}
-import java.nio.file.Path
+import java.nio.file.{NoSuchFileException, Path}
 
 import cats.effect.ExitCase
 import monix.eval.Task
 import monix.reactive.Observable
+import cats.effect.Resource
 
-trait FileIO {
+private[gcs] trait FileIO {
 
-  protected def openFileInputStream(path: Path): Observable[BufferedInputStream] = {
-    Observable.resource {
-      Task(new BufferedInputStream(new FileInputStream(path.toFile)))
+  protected def openFileInputStream(path: Path): Resource[Task, BufferedInputStream] = {
+    Resource.make[Task, BufferedInputStream]{
+     Task(new BufferedInputStream(new FileInputStream(path.toFile)))
     } { fis =>
       Task(fis.close())
     }

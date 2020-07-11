@@ -1,17 +1,13 @@
 package monix.connect.gcs
 
-import java.io.{File, FileInputStream}
-import java.nio.channels.Channels
-import java.nio.file.{Files, Path, Paths}
+import java.io.File
+import java.nio.file.{Files, Path}
 
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions, Option => _}
+import com.google.cloud.storage.{Blob, Option => _}
 import monix.execution.Scheduler.Implicits.global
-import org.mockito.Mockito.{times, verify}
-import org.mockito.MockitoSugar.when
 import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import com.google.cloud.{ByteArray, NoCredentials}
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import monix.reactive.Observable
 import com.google.cloud.storage.BlobId
@@ -21,18 +17,14 @@ import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfterAll
 import org.apache.commons.io.FileUtils
 
-import scala.jdk.CollectionConverters._
-import scala.util.Try
-
 class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers with ArgumentMatchersSugar with BeforeAndAfterAll {
 
   val storage = LocalStorageHelper.getOptions.getService
-
+  val dir = new File("gcs/tmp").toPath
   val nonEmptyString: Gen[String] = Gen.nonEmptyListOf(Gen.alphaChar).map(chars => "test-" + chars.mkString.take(20))
-
+  val genLocalPath = nonEmptyString.map(s => dir.toAbsolutePath.toString + "/" + s)
   val testBucketName = nonEmptyString.sample.get
 
-  val dir = new File("gcs/tmp").toPath
   override def beforeAll(): Unit = {
     FileUtils.deleteDirectory(dir.toFile)
     Files.createDirectory(dir)
@@ -102,8 +94,8 @@ class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers w
       //given
       val blobPath = nonEmptyString.sample.get
       val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val filePath: Path = new File(genLocalPath.sample.get).toPath
       val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
-      val filePath: Path = new File(dir.toAbsolutePath.toString + "/" + nonEmptyString.sample.get).toPath
       val blob: Blob = storage.create(blobInfo, content)
       val gcsBlob = new GcsBlob(blob)
 
@@ -118,51 +110,114 @@ class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers w
       r shouldBe content
     }
 
-    "upload to the blob if it is empty" in {
+    "upload to the blob" when {
+
+      "it is empty" in {
+        //given
+        val blobPath = nonEmptyString.sample.get
+        val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+        val blob: Blob = storage.create(blobInfo)
+        val gcsBlob = new GcsBlob(blob)
+        val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
+
+        //when
+        val downloader: Observable[Array[Byte]] = gcsBlob.download()
+        val contentBefore: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
+        Observable.pure(content).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+
+        //then
+        val exists = gcsBlob.exists().runSyncUnsafe()
+        val r: Array[Byte] = downloader.headL.runSyncUnsafe()
+        exists shouldBe true
+        contentBefore.isEmpty shouldBe true
+        r shouldBe content
+      }
+
+      "it is not empty" in {
+        //given
+        val blobPath = nonEmptyString.sample.get
+        val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+        val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
+        val blob: Blob = storage.create(blobInfo, content)
+        val gcsBlob = new GcsBlob(blob)
+
+        //when
+        val downloader: Observable[Array[Byte]] = gcsBlob.download()
+        val contentBefore: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
+        Observable.now(content).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+
+        //then
+        val exists = gcsBlob.exists().runSyncUnsafe()
+        val r: Array[Byte] = downloader.headL.runSyncUnsafe()
+        exists shouldBe true
+        contentBefore.isEmpty shouldBe false
+        r shouldBe content
+      }
+
+      "the source observable is empty" in {
+        //given
+        val blobPath = nonEmptyString.sample.get
+        val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+        val blob: Blob = storage.create(blobInfo)
+        val gcsBlob = new GcsBlob(blob)
+
+        //when
+        val downloader: Observable[Array[Byte]] = gcsBlob.download()
+        val contentBefore: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
+        Observable.pure(Array.emptyByteArray).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+
+        //then
+        val r: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
+        contentBefore.isEmpty shouldBe true
+        r.isEmpty shouldBe true
+      }
+    }
+
+    "uploads to the blob from a file" in {
       //given
       val blobPath = nonEmptyString.sample.get
       val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
       val blob: Blob = storage.create(blobInfo)
       val gcsBlob = new GcsBlob(blob)
+      val sourcePath = new File(genLocalPath.sample.get).toPath
       val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
-      
+      Files.write(sourcePath, content)
+
       //when
-      val ob: Observable[Array[Byte]] = gcsBlob.download()
-      val contentBefore: Option[Array[Byte]] = ob.headOptionL.runSyncUnsafe()
-      Observable.pure(content).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+      val dowloader: Observable[Array[Byte]] = gcsBlob.download()
+      val contentBefore: Option[Array[Byte]] = dowloader.headOptionL.runSyncUnsafe()
+      val f = gcsBlob.uploadFromFile(sourcePath).runToFuture(global)
 
       //then
       val exists = gcsBlob.exists().runSyncUnsafe()
-      val actualContent: Array[Byte] = ob.headL.runSyncUnsafe()
+      val r = gcsBlob.download().headOptionL.runSyncUnsafe()
+      f.value.get.isSuccess shouldBe true
       exists shouldBe true
-      contentBefore.isEmpty shouldBe true
-      actualContent shouldBe content
+      contentBefore.isDefined shouldBe false
+      r.isDefined shouldBe true
+      r.get shouldBe content
+    }
+
+    "return a failed task when uploading from a non existent file" in {
+      //given
+      val blobPath = nonEmptyString.sample.get
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val blob: Blob = storage.create(blobInfo)
+      val gcsBlob = new GcsBlob(blob)
+      val sourcePath = new File(genLocalPath.sample.get).toPath
+
+      //when
+      val dowloader: Observable[Array[Byte]] = gcsBlob.download()
+      val contentBefore: Option[Array[Byte]] = dowloader.headOptionL.runSyncUnsafe()
+      val f = gcsBlob.uploadFromFile(sourcePath).runToFuture(global)
+
+      //then
+      f.value.get.isFailure shouldBe true
+      val r = gcsBlob.download().headOptionL.runSyncUnsafe()
+      contentBefore.isDefined shouldBe false
+      r.isDefined shouldBe false
     }
 
   }
-  //println("Exist: " + ByteArray.copyFrom(blob.getContent()).toStringUtf8)
 
-  //val readChannel = storage.reader(BlobId.of(testBucketName, blobPath ))
-  //println("Read conent: " + ByteArray.copyFrom(Observable.fromInputStreamUnsafe(Channels.newInputStream(readChannel)).headL.runSyncUnsafe()).toStringUtf8)
-  //val gcs = new GcsStorage(storage).createBucket("sample", "DEFAULT_REGION", None).runSyncUnsafe()
-
-   //println("Bucket info: " + gcs.bucketInfo)
-
-
-  // s"$GcsBucket" should {
-//
- //   "implement an async exists operation" in {
- //     //given
- //     val bucketSourceOption: BucketSourceOption = mock[BucketSourceOption]
- //     when(underlying.exists(bucketSourceOption)).thenAnswer(true)
-//
- //     //when
- //     val result: Boolean = bucket.exists(bucketSourceOption).runSyncUnsafe()
-//
- //     //then
- //     result shouldBe true
- //     verify(underlying, times(1)).exists(bucketSourceOption)
- //   }
- //
- // }
 }

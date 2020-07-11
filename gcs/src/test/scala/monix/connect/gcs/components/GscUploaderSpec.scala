@@ -3,6 +3,8 @@ package monix.connect.gcs.components
 import java.nio.ByteBuffer
 
 import com.google.cloud.WriteChannel
+import com.google.cloud.storage.{BlobInfo, Storage}
+import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import org.mockito.IdiomaticMockito
@@ -13,11 +15,13 @@ import monix.execution.exceptions.DummyException
 
 import scala.util.{Failure, Try}
 
-class StorageWriterConsumerSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
+class GscUploaderSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
 
-  s"${StorageWriterConsumer}" should {
+  val storage = mock[Storage]
+  val blobInfo: BlobInfo = BlobInfo.newBuilder("myBucket", "id123").build()
+  s"${GcsUploader}" should {
 
-    "write each passed chunk and return the total size" in {
+   "write each passed chunk and return the total size" in {
       //given
       val writeChannel: WriteChannel = mock[WriteChannel]
       val firstChunk = "Hello".getBytes
@@ -30,13 +34,13 @@ class StorageWriterConsumerSpec extends AnyWordSpecLike with IdiomaticMockito wi
       when(writeChannel.write(ByteBuffer.wrap(lastChunk))).thenReturn(lastChunk.length)
 
       //when
-      val t =
-        Observable(firstChunk, secondChunk, thirdChunk, lastChunk).consumeWith(StorageWriterConsumer(writeChannel))
+      val t: Task[Nothing] =
+        Observable(firstChunk, secondChunk, thirdChunk, lastChunk).consumeWith(GcsUploader(storage, blobInfo))
 
       //then
       val totalBytes: Long = t.runSyncUnsafe()
-      val expectedWrittenBytes = (firstChunk.length + secondChunk.length + thirdChunk.length + lastChunk.length)
-      totalBytes shouldBe expectedWrittenBytes
+      val writtenBytes = (firstChunk.length + secondChunk.length + thirdChunk.length + lastChunk.length)
+      totalBytes shouldBe writtenBytes
     }
 
     "correctly reports internal failures of any kind" in {
@@ -50,7 +54,7 @@ class StorageWriterConsumerSpec extends AnyWordSpecLike with IdiomaticMockito wi
       when(writeChannel.write(ByteBuffer.wrap(firstChunk))).thenThrow(DummyException("Boom!"))
 
       //when
-      val t = Observable(firstChunk, secondChunk).consumeWith(StorageWriterConsumer(writeChannel))
+      val t = Observable(firstChunk, secondChunk).consumeWith(Storage(writeChannel))
 
       //then
       val maybeTotalBytes: Try[Long] = Try(t.runSyncUnsafe())
@@ -66,7 +70,7 @@ class StorageWriterConsumerSpec extends AnyWordSpecLike with IdiomaticMockito wi
       when(writeChannel.write(ByteBuffer.wrap(Array.emptyByteArray))).thenReturn(0)
 
       //when
-      val t = Observable(firstChunk, null).consumeWith(StorageWriterConsumer(writeChannel))
+      val t = Observable(firstChunk, null).consumeWith(Storage(writeChannel))
 
       //then
       val maybeTotalBytes: Try[Long] = Try(t.runSyncUnsafe())

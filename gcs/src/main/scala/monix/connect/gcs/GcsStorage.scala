@@ -4,8 +4,9 @@ import java.io.FileInputStream
 import java.nio.file.Path
 
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.WriteChannel
 import com.google.cloud.storage.Storage._
-import com.google.cloud.storage.{Storage, StorageOptions}
+import com.google.cloud.storage.{BlobInfo, Storage, StorageOptions}
 import monix.connect.gcs.configuration.GcsBucketInfo
 import monix.connect.gcs.components.Paging
 import monix.connect.gcs.configuration.GcsBucketInfo.Metadata
@@ -20,10 +21,9 @@ final class GcsStorage(underlying: Storage) extends Paging {
   def createBucket(name: String,
                    location: GcsBucketInfo.Locations.Location,
                    metadata: Option[Metadata],
-                   options: BucketTargetOption*)
-  : Task[GcsBucket] = {
-    Task(underlying.create(GcsBucketInfo.withMetadata(name, location, metadata), options: _*))
-      .map(GcsBucket.apply)
+                   options: BucketTargetOption*): GcsBucket = {
+    val bucket = underlying.create(GcsBucketInfo.withMetadata(name, location, metadata), options: _*)
+    GcsBucket(bucket)
   }
 
   /**
@@ -40,6 +40,12 @@ final class GcsStorage(underlying: Storage) extends Paging {
     */
   def listBuckets(options: BucketListOption *): Observable[GcsBucket] =
     walk(Task(underlying.list(options: _*))).map(GcsBucket.apply)
+
+
+  private[gcs] def writer(blobInfo: BlobInfo, options: Storage.BlobWriteOption*): WriteChannel = underlying.writer(blobInfo, options: _*)
+
+  private[gcs] def underlying(): Storage = underlying
+
 }
 
 object GcsStorage {

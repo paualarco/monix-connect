@@ -7,7 +7,7 @@ import com.google.cloud.storage.Bucket.BucketSourceOption
 import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobWriteOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, BlobId, Bucket}
 import monix.connect.gcs.configuration.{GcsBlobInfo, GcsBucketInfo}
-import monix.connect.gcs.components.{FileIO, GcsWriterConsumer, Paging, StorageDownloader, StorageUploader, StorageWriterConsumer}
+import monix.connect.gcs.components.{FileIO, GcsUploader, Paging, StorageDownloader}
 import monix.eval.Task
 import monix.reactive.Observable
 
@@ -37,7 +37,7 @@ import scala.collection.JavaConverters._
   * }}}
   */
 final class GcsBucket private (underlying: Bucket)
-  extends StorageUploader with StorageDownloader with FileIO with Paging {
+  extends StorageDownloader with FileIO with Paging {
 
   /**
     * Downloads a Blob from GCS, returning an Observable containing the bytes in chunks of length chunkSize.
@@ -65,7 +65,7 @@ final class GcsBucket private (underlying: Bucket)
     *
     *
     */
-  def download(blobName: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
+  def downloader(blobName: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
     val blobId: BlobId = BlobId.of(underlying.getName, blobName)
     download(underlying.getStorage, blobId, chunkSize)
   }
@@ -127,23 +127,12 @@ final class GcsBucket private (underlying: Bucket)
     *   } println("Uploaded Data Successfully")
     * }}}
     */
-  def upload(
-    name: String,
-    metadata: Option[GcsBlobInfo.Metadata] = None,
-    chunkSize: Int = 4096,
-    options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[StorageWriterConsumer] = {
-    val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
-    upload(underlying.getStorage, blobInfo, chunkSize, options: _*)
-  }
-
-  //todo revise
-  // I think that could replace upload method, because it is not wrapped in a task, which makes it easier to be accessed and used
-  def writer(name: String,
+  def uploader(name: String,
               metadata: Option[GcsBlobInfo.Metadata] = None,
               chunkSize: Int = 4096,
-              options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsWriterConsumer = {
+              options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsUploader = {
     val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
-    new GcsWriterConsumer(underlying.getStorage, blobInfo, chunkSize, options: _*)
+    GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*)
   }
 
   /**
@@ -154,34 +143,29 @@ final class GcsBucket private (underlying: Bucket)
     *   import java.nio.file.Paths
     *
     *   import monix.reactive.Observable
-    *   import monix.connect.gcs.{Storage, Bucket}
+    *   import monix.connect.gcs.{GcsStorage, GcsBucket}
     *
     *   val config = BucketConfig(
     *      name = "mybucket"
     *   )
     *
-    *   val storage: Task[Storage] = Storage.create().memoize
-    *   val bucket: Task[Bucket] = storage.flatMap(_.createBucket(config)).memoize
+    *   val storage: GcsStorage = GcsStorage.create()
+    *   val bucket: GcsBucket = storage.createBucket(config))
     *
-    *   for {
-    *      b <- bucket
-    *      _ <- bucket.uploadFromFile("blob1", Paths.get("file.txt"))
-    *   } yield println("File Uploaded Successfully")
+    *   bucket.uploadFromFile("blob1", Paths.get("file.txt")).runToFuture()
     * }}}
     */
-  def uploadFromFile(
-    name: String,
-    path: Path,
-    metadata: Option[GcsBlobInfo.Metadata] = None,
-    chunkSize: Int = 4096,
-    options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Long] = {
-    val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
-    upload(underlying.getStorage, blobInfo, chunkSize, options: _*).flatMap { consumer =>
-      openFileInputStream(path).flatMap { fis => Observable.fromInputStreamUnsafe(fis).takeWhile(_.nonEmpty) }
-        .consumeWith(consumer)
+  def uploadFromFile(blobName: String,
+                     path: Path,
+                     metadata: Option[GcsBlobInfo.Metadata] = None,
+                     chunkSize: Int = 4096,
+                     options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Unit] = {
+    val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, blobName, metadata)
+    openFileInputStream(path).use{ bis =>
+      Observable.fromInputStreamUnsafe(bis)
+        .consumeWith(new GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*))
     }
   }
-
 
   /**
     * Checks if this bucket exists.
@@ -232,7 +216,7 @@ final class GcsBucket private (underlying: Bucket)
   }
 
   /**
-    * Returns a [[Observable]] of all blobs in this [[GcsBucket]].
+    * Returns a [[Observable]] of the blobs in this [[GcsBucket]] that matched with the passed [[BlobListOption]]s.
     */
   def listBlobs(options: BlobListOption*): Observable[GcsBlob] = {
     walk(Task(underlying.list(options: _*))).map(GcsBlob.apply)
@@ -262,6 +246,7 @@ final class GcsBucket private (underlying: Bucket)
   def deleteAcl(acl: Acl.Entity): Task[Boolean] =
     Task(underlying.deleteAcl(acl))
 
+  //todo maybe returning a task instead?
   /**
     * Returns a [[Observable]] of all the ACL Entries for this [[GcsBucket]].
     */

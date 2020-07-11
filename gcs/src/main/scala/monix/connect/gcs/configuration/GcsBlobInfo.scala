@@ -32,8 +32,9 @@ object GcsBlobInfo {
   }
 
   def fromJava(blobInfo: BlobInfo): GcsBlobInfo = {
-    // these fields can't be initialized directly below when creating other fields since
-    // the default value of the option type would be applied, thus the option would not be `None`.
+    /** These fields can't be initialized directly below when creating other fields since
+      * the default value of the option type would be applied, thus the option would not be `None`.
+      */
     val cacheControl = Option(blobInfo.getCacheControl)
     val componentCount = Option(blobInfo.getComponentCount).map(_.intValue())
     val generation = Option(blobInfo.getGeneration).map(_.longValue)

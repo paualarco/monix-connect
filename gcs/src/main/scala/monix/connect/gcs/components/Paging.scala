@@ -6,7 +6,7 @@ import monix.reactive.Observable
 
 import scala.jdk.CollectionConverters._
 
-trait Paging {
+private[gcs] trait Paging {
 
   protected def walk[A](f: Task[Page[A]]): Observable[A] = {
 
@@ -21,6 +21,5 @@ trait Paging {
       .flatMap(Observable.fromAsyncStateAction(next)(_))
       .takeWhileInclusive(_.hasNextPage)
       .concatMapIterable(_.iterateAll().asScala.toList)
-
   }
 }

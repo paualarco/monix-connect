@@ -1,5 +1,6 @@
 package monix.connect.gcs
 
+import java.io.{BufferedInputStream, FileInputStream}
 import java.net.URL
 import java.nio.file.Path
 
@@ -8,7 +9,7 @@ import com.google.cloud.storage.Storage.{BlobTargetOption, BlobWriteOption, Sign
 import com.google.cloud.storage.{Acl, Blob, BlobId, Option => _}
 import com.google.cloud.{storage => google}
 import monix.connect.gcs.configuration.GcsBlobInfo
-import monix.connect.gcs.components.{FileIO, GcsWriterConsumer, StorageDownloader}
+import monix.connect.gcs.components.{FileIO, GcsUploader, StorageDownloader}
 import monix.eval.Task
 import monix.reactive.Observable
 
@@ -72,8 +73,8 @@ final class GcsBlob(underlying: Blob)
    *      name = "mybucket"
    *   )
    *
-   *   val storage: Task[Storage] = Storage.create().memoize
-   *   val bucket: Task[Bucket] = storage.flatMap(_.createBucket(config)).memoize
+   *   val storage: GcsStorage = Storage.create()
+   *   val bucket: GcsBucket = storage.createBucket(config)
    *
    *   for {
    *      b <- bucket
@@ -104,11 +105,41 @@ final class GcsBlob(underlying: Blob)
     }
   }
 
+  /**
+   * Uploads the provided file to the specified target Blob.
+   *
+   * Example:
+   * {{{
+   *   import java.nio.file.Paths
+   *
+   *   import monix.reactive.Observable
+   *   import monix.connect.gcs.{GcsStorage, GcsBucket}
+   *
+   *   val config = BucketConfig(
+   *      name = "mybucket"
+   *   )
+   *
+   *   val storage: GcsStorage = GcsStorage.create()
+   *   val bucket: GcsBucket = storage.createBucket(config))
+   *
+   *   bucket.uploadFromFile("blob1", Paths.get("./your/file.txt")).runToFuture()
+   * }}}
+   */
+  def uploadFromFile(path: Path,
+    metadata: Option[GcsBlobInfo.Metadata] = None,
+    chunkSize: Int = 4096,
+    options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Unit] = {
+    val blobInfo = GcsBlobInfo.withMetadata(underlying.getBucket, underlying.getName, metadata)
+    openFileInputStream(path).use( bis =>
+      Observable.fromInputStreamUnsafe(bis)
+        .consumeWith(new GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*)))
+  }
+
   def upload(metadata: Option[GcsBlobInfo.Metadata] = None,
              chunkSize: Int = 4096,
-             options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsWriterConsumer = {
+             options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsUploader = {
     val blobInfo = GcsBlobInfo.withMetadata(underlying.getBucket, underlying.getName, metadata)
-    new GcsWriterConsumer(underlying.getStorage, blobInfo, chunkSize, options: _*)
+    new GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*)
   }
 
   /**

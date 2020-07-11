@@ -7,7 +7,7 @@ import com.google.cloud.storage.{BlobId, Storage}
 import monix.eval.Task
 import monix.reactive.Observable
 
-trait StorageDownloader {
+private[gcs] trait StorageDownloader {
 
   private def openReadChannel(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[ReadChannel] = {
     Observable.resource {
