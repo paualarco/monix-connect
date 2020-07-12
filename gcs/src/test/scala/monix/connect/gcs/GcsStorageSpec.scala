@@ -25,7 +25,7 @@ class GcsStorageSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers
       when(underlying.create(any[GoogleBucketInfo])).thenReturn(bucket)
 
       //when
-      val maybeBucket: GcsBucket = storage.createBucket("bucket", Locations.`EUROPE-WEST1`, None)
+      val maybeBucket: GcsBucket = storage.createBucket("bucket", Locations.`EUROPE-WEST1`, None).runSyncUnsafe()
 
       //then
       maybeBucket shouldBe a[GcsBucket]

@@ -7,6 +7,7 @@ import com.google.cloud.storage.{Acl, BlobId, BlobInfo, StorageClass}
 
 import scala.jdk.CollectionConverters._
 
+/** Object that provides builder and conversion (from java) methods for [[GcsBlobInfo]]. */
 object GcsBlobInfo {
 
   private[gcs] def withMetadata(name: String, blobName: String, metadata: Option[Metadata]): BlobInfo = {
@@ -31,6 +32,7 @@ object GcsBlobInfo {
     builder.build()
   }
 
+  /** Converter from the google's java [[BlobInfo]] to monix-conect's scala [[GcsBlobInfo]]  */
   def fromJava(blobInfo: BlobInfo): GcsBlobInfo = {
     /** These fields can't be initialized directly below when creating other fields since
       * the default value of the option type would be applied, thus the option would not be `None`.
@@ -98,6 +100,9 @@ object GcsBlobInfo {
     temporaryHold: Option[Boolean] = None)
 }
 
+/** A safe and scala idiomatic way of accessing to the blob information, since it provides
+  * conversions from the java language to scala and returning empty options instead of null values.
+  */
 private[gcs] case class GcsBlobInfo(
   name: String,
   bucket: String,

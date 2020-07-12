@@ -3,15 +3,13 @@ package monix.connect.gcs
 import java.io.File
 import java.nio.file.{Files, Path}
 
-import com.google.cloud.storage.{Blob, Option => _}
+import com.google.cloud.storage.{Blob, BlobId, BlobInfo, Option => _}
 import monix.execution.Scheduler.Implicits.global
 import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import monix.reactive.Observable
-import com.google.cloud.storage.BlobId
-import com.google.cloud.storage.BlobInfo
 import monix.eval.Task
 import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfterAll
@@ -217,6 +215,27 @@ class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers w
       contentBefore.isDefined shouldBe false
       r.isDefined shouldBe false
     }
+
+    /* not supported by the [[LocalStorageHelper]]
+    "create and lists acls" in {
+      //given
+      val blobPath = nonEmptyString.sample.get
+      val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+      val blob: Blob = storage.create(blobInfo)
+      val gcsBlob = new GcsBlob(blob)
+      val userAcl = Acl.of(new User("user@email.com"), Role.OWNER)
+      val groupAcl = Acl.of(new Group("group@email.com"), Role.READER)
+
+      //when
+      val r1: Acl = gcsBlob.createAcl(userAcl).runSyncUnsafe()
+      val r2: Acl = gcsBlob.createAcl(groupAcl).runSyncUnsafe()
+      val l: List[Acl] = gcsBlob.listAcls().toListL.runSyncUnsafe()
+
+      //then
+      r1 shouldBe userAcl
+      r2 shouldBe groupAcl
+      l should contain theSameElementsAs List(userAcl, groupAcl)
+    }*/
 
   }
 

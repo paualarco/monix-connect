@@ -7,6 +7,10 @@ import monix.connect.gcs.configuration.GcsBucketInfo.Locations.Location
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
+/**
+  * This class wraps the [[com.google.cloud.storage.Blob]] class, providing an idiomatic scala API
+  * handling null values with [[Option]] where applicable, as well as wrapping all side-effectful calls
+  */
 object GcsBucketInfo {
 
   def fromJava(bucketInfo: BucketInfo): GcsBucketInfo = {
@@ -134,6 +138,9 @@ object GcsBucketInfo {
   )
 }
 
+/** A safe and scala idiomatic way of accessing to the bucket information since it provides
+  * conversions from the java language to scala and returning empty options instead of null values.
+  */
 private[gcs] case class GcsBucketInfo(
   name: String,
   location: String,

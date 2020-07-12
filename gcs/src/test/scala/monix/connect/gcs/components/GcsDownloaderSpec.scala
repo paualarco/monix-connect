@@ -11,7 +11,7 @@ import org.mockito.ArgumentMatchers.any
 import org.scalatest.wordspec.AnyWordSpecLike
 
 
-class StorageDownloaderSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
+class GcsDownloaderSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers {
 
   val underlying: GoogleBlob = mock[GoogleBlob]
   val mockStorage: Storage = mock[Storage]
@@ -19,7 +19,7 @@ class StorageDownloaderSpec extends AnyWordSpecLike with IdiomaticMockito with M
 
   s"StorageDownloader" should {
 
-  "download a blob" in new StorageDownloader {
+  "download a blob" in new GcsDownloader {
     //given
     val bucket = "sampleBucket"
     val blobName = "sampleBlob"

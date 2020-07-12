@@ -35,7 +35,6 @@ private[gcs] final class GcsUploader(storage: Storage, blobInfo: BlobInfo, chunk
               writer.write(ByteBuffer.wrap(chunk))
               monix.execution.Ack.Continue
             }
-
           } catch {
             case ex if NonFatal(ex) => {
               onError(ex)
@@ -61,8 +60,7 @@ private[gcs] final class GcsUploader(storage: Storage, blobInfo: BlobInfo, chunk
 
 object GcsUploader {
 
-  def apply(storage: Storage, blobInfo: BlobInfo, chunkSize: Int = 4096, options: Seq[BlobWriteOption] = Seq.empty): GcsUploader = new GcsUploader(storage, blobInfo, chunkSize, options:_ *)
+  def apply(storage: GcsStorage, blobInfo: BlobInfo, chunkSize: Int = 4096, options: List[BlobWriteOption] = List.empty): GcsUploader = new GcsUploader(storage.underlying, blobInfo, chunkSize, options:_ *)
 
-  def apply(storage: GcsStorage, blobInfo: BlobInfo, chunkSize: Int = 4096, options: Seq[BlobWriteOption] = Seq.empty): GcsUploader = new GcsUploader(storage.underlying, blobInfo, chunkSize, options:_ *)
 }
 

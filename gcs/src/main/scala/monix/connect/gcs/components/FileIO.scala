@@ -1,7 +1,7 @@
 package monix.connect.gcs.components
 
 import java.io.{BufferedInputStream, BufferedOutputStream, FileInputStream, FileOutputStream}
-import java.nio.file.{NoSuchFileException, Path}
+import java.nio.file.Path
 
 import cats.effect.ExitCase
 import monix.eval.Task

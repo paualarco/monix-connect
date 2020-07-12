@@ -36,16 +36,15 @@ class PagingSpec extends AnyWordSpecLike with IdiomaticMockito with Matchers wit
 
       //when
       val t = walk(Task(page0)).toListL
-
       val pages = t.runSyncUnsafe()
+
+      //then
       verify(page0, times(2)).hasNextPage
       verify(page1, times(2)).hasNextPage
       verify(page2, times(2)).hasNextPage
       verify(page0, times(1)).getNextPage
       verify(page1, times(1)).getNextPage
       verify(page2, never()).getNextPage
-
-      println("Pages: " + pages.mkString)
       pages.size shouldBe 4
     }
   }

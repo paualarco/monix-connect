@@ -7,7 +7,7 @@ import com.google.cloud.storage.Bucket.BucketSourceOption
 import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobWriteOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, BlobId, Bucket}
 import monix.connect.gcs.configuration.{GcsBlobInfo, GcsBucketInfo}
-import monix.connect.gcs.components.{FileIO, GcsUploader, Paging, StorageDownloader}
+import monix.connect.gcs.components.{FileIO, GcsUploader, Paging, GcsDownloader}
 import monix.eval.Task
 import monix.reactive.Observable
 
@@ -17,35 +17,17 @@ import scala.collection.JavaConverters._
   * This class wraps the [[com.google.cloud.storage.Bucket]] class, providing an idiomatic scala API
   * handling null values with [[Option]] where applicable, as well as wrapping all side-effectful calls
   * in [[monix.eval.Task]] or [[monix.reactive.Observable]].
-  *
-  * Example:
-  * {{{
-  *   import monix.reactive.Observable
-  *   import monix.connect.gcs.{Storage, Bucket}
-  *
-  *   val config = BucketConfig(
-  *      name = "mybucket"
-  *   )
-  *
-  *   val storage: Task[Storage] = Storage.create().memoize
-  *   val bucket: Task[Bucket] = storage.flatMap(_.createBucket(config)).memoize
-  *
-  *   (for {
-  *      bucket <- Observable.fromTask(bucket)
-  *      blobs  <- bucket.list()
-  *   } yield println(blob.name)).completeL
-  * }}}
   */
 final class GcsBucket private (underlying: Bucket)
-  extends StorageDownloader with FileIO with Paging {
+  extends GcsDownloader with FileIO with Paging {
+  self =>
 
   /**
-    * Downloads a Blob from GCS, returning an Observable containing the bytes in chunks of length chunkSize.
+    * Downloads a Blob from GCS, returning an [[Observable]] containing the bytes in chunks of length chunkSize.
     *
-    * Example:
+    * == Example ==
+    *
     * {{{
-    *   import java.nio.charset.StandardCharsets
-    *
     *   import monix.reactive.Observable
     *   import monix.connect.gcs.{Storage, Bucket}
     *
@@ -62,7 +44,6 @@ final class GcsBucket private (underlying: Bucket)
     *      bytes  <- b.download("blob1").foldLeftL(Array.emptyByteArray)(_ ++ _)
     *   } yield println(new String(bytes, StandardCharsets.UTF_8))
     * }}}
-    *
     *
     */
   def downloader(blobName: String, chunkSize: Int = 4096): Observable[Array[Byte]] = {
@@ -84,8 +65,8 @@ final class GcsBucket private (underlying: Bucket)
     *      name = "mybucket"
     *   )
     *
-    *   val storage: Task[Storage] = Storage.create().memoize
-    *   val bucket: Task[Bucket] = storage.flatMap(_.createBucket(config)).memoize
+    *   val storage: Task[Storage] = Storage.create()
+    *   val bucket: Task[Bucket] = storage.createBucket(config)
     *
     *   for {
     *      b <- bucket
@@ -132,7 +113,7 @@ final class GcsBucket private (underlying: Bucket)
               chunkSize: Int = 4096,
               options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsUploader = {
     val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, name, metadata)
-    GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*)
+    GcsUploader(self.getStorage, blobInfo, chunkSize, options)
   }
 
   /**
@@ -145,9 +126,7 @@ final class GcsBucket private (underlying: Bucket)
     *   import monix.reactive.Observable
     *   import monix.connect.gcs.{GcsStorage, GcsBucket}
     *
-    *   val config = BucketConfig(
-    *      name = "mybucket"
-    *   )
+    *   val config = BucketConfig(name = "mybucket")
     *
     *   val storage: GcsStorage = GcsStorage.create()
     *   val bucket: GcsBucket = storage.createBucket(config))
@@ -161,9 +140,9 @@ final class GcsBucket private (underlying: Bucket)
                      chunkSize: Int = 4096,
                      options: List[BlobWriteOption] = List.empty[BlobWriteOption]): Task[Unit] = {
     val blobInfo = GcsBlobInfo.withMetadata(underlying.getName, blobName, metadata)
-    openFileInputStream(path).use{ bis =>
+    openFileInputStream(path).use { bis =>
       Observable.fromInputStreamUnsafe(bis)
-        .consumeWith(new GcsUploader(underlying.getStorage, blobInfo, chunkSize, options: _*))
+        .consumeWith(GcsUploader(self.getStorage, blobInfo, chunkSize, options))
     }
   }
 
@@ -173,9 +152,7 @@ final class GcsBucket private (underlying: Bucket)
   def exists(options: BucketSourceOption*): Task[Boolean] =
     Task(underlying.exists(options: _*))
 
-  /**
-    * Reloads and refreshes this buckets data, returning a new Bucket instance.
-    */
+  /** Reloads and refreshes this buckets data, returning a new Bucket instance. */
   def reload(options: BucketSourceOption*): Task[Option[GcsBucket]] =
     Task(underlying.reload(options: _*)).map { optBucket => Option(optBucket).map(GcsBucket.apply) }
 
@@ -191,115 +168,94 @@ final class GcsBucket private (underlying: Bucket)
     Task(underlying.update(options: _*))
       .map(GcsBucket.apply)
 
-  /**
-    * Deletes this bucket.
-    */
+  /** Deletes this bucket. */
   def delete(options: BucketSourceOption*): Task[Boolean] =
     Task(underlying.delete(options: _*))
 
-  /**
-    * Returns the requested blob in this bucket or None if it isn't found.
-    */
+  /** Returns the requested blob in this bucket or None if it isn't found. */
   def getBlob(name: String, options: BlobGetOption*): Task[Option[GcsBlob]] = {
     Task(underlying.get(name, options: _*)).map { optBlob => Option(optBlob).map(GcsBlob.apply) }
   }
 
-  /**
-    * Returns an [[Observable]] of the requested blobs, if one doesn't exist null is
+  /** Returns an [[Observable]] of the requested blobs, if one doesn't exist null is
     * returned and filtered out of the result set.
     */
-  def getBlobs(names: NonEmptyList[String]): Observable[GcsBlob] = Observable.suspend {
-    Observable
-      .fromIterable(underlying.get(names.toList.asJava).asScala)
-      .filter(_ != null)
-      .map(GcsBlob.apply)
-  }
+  def getBlobs(names: NonEmptyList[String]): Observable[GcsBlob] =
+    Observable.suspend {
+      Observable
+        .fromIterable(underlying.get(names.toList.asJava).asScala)
+        .filter(_ != null)
+        .map(GcsBlob.apply)
+    }
 
-  /**
-    * Returns a [[Observable]] of the blobs in this [[GcsBucket]] that matched with the passed [[BlobListOption]]s.
+  /** Returns a [[Observable]] of the blobs in this [[GcsBucket]]
+    * that matched with the passed [[BlobListOption]]s.
     */
   def listBlobs(options: BlobListOption*): Observable[GcsBlob] = {
     walk(Task(underlying.list(options: _*))).map(GcsBlob.apply)
   }
 
-  /**
-    * Creates a new ACL entry on this bucket.
-    */
+  /** Creates a new ACL entry on this bucket. */
   def createAcl(acl: Acl): Task[Acl] =
     Task(underlying.createAcl(acl))
 
-  /**
-    * Returns the ACL entry for the specified entity on this bucket or None if not found.
-    */
+  /** Returns the ACL entry for the specified entity on this bucket or [[None]] if not found. */
   def getAcl(acl: Acl.Entity): Task[Option[Acl]] =
     Task(underlying.getAcl(acl)).map(Option(_))
 
-  /**
-    * Updates an ACL entry on this bucket.
-    */
+  /** Updates an ACL entry on this bucket. */
   def updateAcl(acl: Acl): Task[Acl] =
     Task(underlying.updateAcl(acl))
 
-  /**
-    * Deletes the ACL entry for the specified entity on this bucket.
-    */
+  /** Deletes the ACL entry for the specified entity on this bucket. */
   def deleteAcl(acl: Acl.Entity): Task[Boolean] =
     Task(underlying.deleteAcl(acl))
 
-  //todo maybe returning a task instead?
-  /**
-    * Returns a [[Observable]] of all the ACL Entries for this [[GcsBucket]].
-    */
-  def listAcls(): Observable[Acl] = {
+  /** Returns a [[Observable]] of all the ACL Entries for this [[GcsBucket]]. */
+  def listAcls(): Observable[Acl] =
     Observable.suspend {
       Observable.fromIterable(underlying.listAcls().asScala)
     }
-  }
 
-  /**
-    * Creates a new default blob ACL entry on this bucket. Default ACLs are applied to a new blob within the bucket
-    * when no ACL was provided for that blob.
+  /** Creates a new default blob ACL entry on this bucket.
+    * Default ACLs are applied to a new blob within the bucket when no ACL was provided for that blob.
     */
   def createDefaultAcl(acl: Acl): Task[Acl] =
     Task(underlying.createDefaultAcl(acl))
 
-  /**
-    * Returns the default object ACL entry for the specified entity on this bucket or None if
-    * not found.
+  /** Returns the default object ACL entry for the specified entity on this bucket
+    * or [[None]] if not found.
     */
   def getDefaultAcl(acl: Acl.Entity): Task[Option[Acl]] =
     Task(underlying.getDefaultAcl(acl)).map(Option(_))
 
-  /**
-    * Updates a default blob ACL entry on this bucket.
-    */
+  /** Updates a default blob ACL entry on this bucket. */
   def updateDefaultAcl(acl: Acl): Task[Acl] =
     Task(underlying.updateDefaultAcl(acl))
 
-  /**
-    * Deletes the default object ACL entry for the specified entity on this bucket.
-    */
+  /** Deletes the default object ACL entry for the specified entity on this bucket. */
   def deleteDefaultAcl(acl: Acl.Entity): Task[Boolean] =
     Task(underlying.deleteDefaultAcl(acl))
 
-  /**
-    * Returns a [[Observable]] of all the default Blob ACL Entries for this [[GcsBucket]].
-    */
-  def listDefaultAcls(): Observable[Acl] = {
+  /** Returns a [[Observable]] of all the default Blob ACL Entries for this [[GcsBucket]]. */
+  def listDefaultAcls(): Observable[Acl] =
     Observable.suspend {
       Observable.fromIterable(underlying.listDefaultAcls().asScala)
     }
-  }
 
-  /**
-    * Locks bucket retention policy. Requires a local metageneration value in the request.
-    */
+  /** Locks bucket retention policy. Requires a local metageneration value in the request. */
   def lockRetentionPolicy(options: BucketTargetOption*): Task[GcsBucket] =
     Task(underlying.lockRetentionPolicy(options: _*)).map(GcsBucket.apply)
 
+  /** Returns the blob's [[GcsStorage]] object used to issue requests. */
+  def getStorage: GcsStorage = GcsStorage(underlying.getStorage)
+
+  /** Returns the blob's [[GcsStorage]] object used to issue requests. */
   def bucketInfo: GcsBucketInfo = GcsBucketInfo.fromJava(underlying)
+
 }
 
+/** Object companion object for  */
 object GcsBucket {
   private[gcs] def apply(bucket: Bucket): GcsBucket = {
     new GcsBucket(bucket)
