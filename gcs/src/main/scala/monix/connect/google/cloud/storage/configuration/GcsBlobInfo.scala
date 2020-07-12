@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.configuration
+package monix.connect.google.cloud.storage.configuration
 
 import java.time.Instant
 
@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 /** Object that provides builder and conversion (from java) methods for [[GcsBlobInfo]]. */
 object GcsBlobInfo {
 
-  private[gcs] def withMetadata(name: String, blobName: String, metadata: Option[Metadata]): BlobInfo = {
+  private[storage] def withMetadata(name: String, blobName: String, metadata: Option[Metadata]): BlobInfo = {
     val builder = BlobInfo.newBuilder(BlobId.of(name, blobName))
     metadata.foreach { options =>
       options.contentType.foreach(builder.setContentType)
@@ -103,7 +103,7 @@ object GcsBlobInfo {
 /** A safe and scala idiomatic way of accessing to the blob information, since it provides
   * conversions from the java language to scala and returning empty options instead of null values.
   */
-private[gcs] case class GcsBlobInfo(
+private[storage] case class GcsBlobInfo(
   name: String,
   bucket: String,
   generatedId: Option[String] = None,

@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import java.io.{BufferedInputStream, BufferedOutputStream, FileInputStream, FileOutputStream}
 import java.nio.file.Path
@@ -8,7 +8,7 @@ import monix.eval.Task
 import monix.reactive.Observable
 import cats.effect.Resource
 
-private[gcs] trait FileIO {
+private[storage] trait FileIO {
 
   protected def openFileInputStream(path: Path): Resource[Task, BufferedInputStream] = {
     Resource.make[Task, BufferedInputStream]{

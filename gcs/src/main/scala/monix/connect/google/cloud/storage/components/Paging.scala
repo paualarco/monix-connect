@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import com.google.api.gax.paging.Page
 import monix.eval.Task
@@ -6,7 +6,7 @@ import monix.reactive.Observable
 
 import scala.jdk.CollectionConverters._
 
-private[gcs] trait Paging {
+private[storage] trait Paging {
 
   protected def walk[A](f: Task[Page[A]]): Observable[A] = {
 

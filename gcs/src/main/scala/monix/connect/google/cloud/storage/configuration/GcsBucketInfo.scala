@@ -1,8 +1,8 @@
-package monix.connect.googlecloud.storage.configuration
+package monix.connect.google.cloud.storage.configuration
 
 import com.google.cloud.storage.BucketInfo.{IamConfiguration, LifecycleRule, Logging}
 import com.google.cloud.storage.{Acl, BucketInfo, Cors, StorageClass}
-import monix.connect.gcs.configuration.GcsBucketInfo.Locations.Location
+import monix.connect.google.cloud.storage.configuration.GcsBucketInfo.Locations.Location
 
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
@@ -141,7 +141,7 @@ object GcsBucketInfo {
 /** A safe and scala idiomatic way of accessing to the bucket information since it provides
   * conversions from the java language to scala and returning empty options instead of null values.
   */
-private[gcs] case class GcsBucketInfo(
+private[storage] case class GcsBucketInfo(
   name: String,
   location: String,
   owner: Acl.Entity,

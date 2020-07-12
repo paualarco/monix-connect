@@ -1,9 +1,8 @@
-package monix.connect.googlecloud.storage.configuration
+package monix.connect.google.cloud.storage.configuration
 
 import com.google.cloud.ReadChannel
-import com.google.cloud.storage.{Blob, BlobInfo, Bucket, BucketInfo, Storage, Option => _}
-import monix.connect.gcs.GscFixture
-import monix.connect.googlecloud.storage.GscFixture
+import com.google.cloud.storage.{Bucket, BucketInfo, Storage, Option => _}
+import monix.connect.google.cloud.storage.GscFixture
 import org.mockito.IdiomaticMockito
 import org.scalacheck.Gen
 import org.scalatest.Assertion

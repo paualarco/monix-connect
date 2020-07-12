@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import com.google.cloud.ReadChannel
 import com.google.cloud.storage.{ BlobId, Storage, Blob => GoogleBlob, Option => _}

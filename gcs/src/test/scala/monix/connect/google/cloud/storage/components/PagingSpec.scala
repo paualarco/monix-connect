@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import com.google.api.gax.paging.Page
 import monix.eval.Task

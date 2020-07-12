@@ -1,11 +1,11 @@
-package monix.connect.googlecloud.storage.configuration
+package monix.connect.google.cloud.storage.configuration
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import com.google.cloud.ReadChannel
 import com.google.cloud.storage.{BlobInfo, Storage, Blob => GoogleBlob, Option => _}
-import monix.connect.gcs.GscFixture
+import monix.connect.google.cloud.storage.GscFixture
 import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalacheck.Gen

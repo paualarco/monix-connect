@@ -1,4 +1,4 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import java.nio.channels.Channels
 
@@ -10,7 +10,7 @@ import monix.reactive.Observable
 /** An internal class that provides the necessary implementations for downloading
   * blobs from any GCS bucket in form of byte array [[Observable]].
   */
-private[gcs] trait GcsDownloader {
+private[storage] trait GcsDownloader {
 
   /** Provides a safe way to open (acquire) and close (release) a [[ReadChannel]] using resource signature.
    * @param storage underlying [[Storage]] instance.

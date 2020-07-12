@@ -1,11 +1,11 @@
-package monix.connect.googlecloud.storage.components
+package monix.connect.google.cloud.storage.components
 
 import java.nio.ByteBuffer
 
 import com.google.cloud.WriteChannel
 import com.google.cloud.storage.{BlobInfo, Storage}
 import com.google.cloud.storage.Storage.BlobWriteOption
-import monix.connect.gcs.GcsStorage
+import monix.connect.google.cloud.storage.GcsStorage
 import monix.eval.Task
 import monix.execution.cancelables.AssignableCancelable
 import monix.execution.{Ack, Callback, Scheduler}
@@ -16,7 +16,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 
-private[gcs] final class GcsUploader(storage: Storage, blobInfo: BlobInfo, chunkSize: Int, options: BlobWriteOption*)
+private[storage] final class GcsUploader(storage: Storage, blobInfo: BlobInfo, chunkSize: Int, options: BlobWriteOption*)
   extends Consumer[Array[Byte], Unit] {
 
   override def createSubscriber(cb: Callback[Throwable, Unit], s: Scheduler): (Subscriber[Array[Byte]], AssignableCancelable) = {
