@@ -168,7 +168,7 @@ class GcsBlobSuite extends AnyWordSpecLike with IdiomaticMockito with Matchers w
         r shouldBe newContent
       }
 
-      "the source observable is empty" in {
+      "the consumed observable is empty" in {
         //given
         val blobPath = nonEmptyString.sample.get
         val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build

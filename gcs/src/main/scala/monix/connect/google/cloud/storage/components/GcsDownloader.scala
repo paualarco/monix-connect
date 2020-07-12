@@ -12,13 +12,14 @@ import monix.reactive.Observable
   */
 private[storage] trait GcsDownloader {
 
-  /** Provides a safe way to open (acquire) and close (release) a [[ReadChannel]] using resource signature.
-   * @param storage underlying [[Storage]] instance.
-   * @param blobId the source blob id to download from.
-   * @param chunkSize conforms the size in bytes of each future read element.
-   * @return an [[Observable]] that exposes a [[ReadChannel]].
-   */
-  private def openReadChannel(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[ReadChannel] = {
+  /**
+    * Provides a safe way to open (acquire) and close (release) a [[ReadChannel]] using resource signature.
+    * @param storage underlying [[Storage]] instance.
+    * @param blobId the source blob id to download from.
+    * @param chunkSize conforms the size in bytes of each future read element.
+    * @return an [[Observable]] that exposes a [[ReadChannel]] to read from.
+    */
+  private def openReadChannel(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[ReadChannel] =
     Observable.resource {
       Task {
         val reader = storage.reader(blobId.getBucket, blobId.getName)
@@ -28,18 +29,17 @@ private[storage] trait GcsDownloader {
     } { reader =>
       Task(reader.close())
     }
-  }
 
   /**
-    *
-    * @param storage
-    * @param blobId
-    * @param chunkSize
-    * @return
+    * Downloads the content from a Blob in form an array byte [[Observable]] of the specified chunksize.
+    * @param storage underlying [[Storage]] instance.
+    * @param blobId the source blob id to download from.
+    * @param chunkSize conforms the size in bytes of each future read element.
+    * @return an array bytes [[Observable]].
     */
-  protected def download(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[Array[Byte]] = {
+  protected def download(storage: Storage, blobId: BlobId, chunkSize: Int): Observable[Array[Byte]] =
     openReadChannel(storage, blobId, chunkSize).flatMap { channel =>
       Observable.fromInputStreamUnsafe(Channels.newInputStream(channel), chunkSize)
     }.takeWhile(_.nonEmpty)
-  }
+
 }

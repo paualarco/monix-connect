@@ -69,6 +69,7 @@ private[storage] final class GcsBlob(val underlying: Blob)
    *   val storage = GcsStorage.create()
    *   val getBlobT: Task[Option[GcsBlob]] = storage.getBlob("myBucket", "myBlob")
    *   val file = new File("path/to/your/path.txt")
+   *
    *   val t: Task[Unit] = {
    *     for {
    *       maybeBlob <- getBlobT
@@ -78,6 +79,8 @@ private[storage] final class GcsBlob(val underlying: Blob)
    *       }
    *     } yield ()
    *   }
+   *
+   *   t.runToFuture()
    * }}}
    */
   def downloadToFile(path: Path, chunkSize: Int = 4096): Task[Unit] = {
@@ -105,19 +108,19 @@ private[storage] final class GcsBlob(val underlying: Blob)
    * == Example ==
    *
    * {{{
-   *   import java.nio.file.Paths
+   *    import monix.connect.google.cloud.storage.{GcsStorage, GcsBucket}
+   *    import monix.eval.Task
    *
-   *   import monix.reactive.Observable
-   *   import monix.connect.gcs.{GcsStorage, GcsBucket}
+   *    val storage = GcsStorage.create()
+   *    val createBucketT: Task[GcsBucket] = storage.createBucket("myBucket", GcsBucketInfo.Locations.`US-WEST1`)
+   *    val sourceFile = new File("path/to/your/path.txt")
    *
-   *   val config = BucketConfig(
-   *      name = "mybucket"
-   *   )
+   *    val t: Task[Unit] = for {
+   *      bucket <- createBucketT
+   *      unit <- bucket.uploadFromFile("myBlob", sourceFile.toPath)
+   *    } yield ()
    *
-   *   val storage: GcsStorage = GcsStorage.create()
-   *   val bucket: GcsBucket = storage.createBucket(config))
-   *
-   *   bucket.uploadFromFile("blob1", Paths.get("./your/file.txt")).runToFuture()
+   *    t.runToFuture()
    * }}}
    */
   def uploadFromFile(path: Path,
@@ -131,6 +134,22 @@ private[storage] final class GcsBlob(val underlying: Blob)
     }
   }
 
+  /**
+    *
+    *    import monix.connect.google.cloud.storage.{GcsStorage, GcsBlob}
+    *    import monix.eval.Task
+    *
+    *    val storage = GcsStorage.create()
+    *    val createBlobT: Task[GcsBlob] = storage.createBlob("myBucket", "myBlob").memoize
+    *
+    *    val ob: Observable[Array[Byte]] = ???
+    *    val t: Task[Unit] = for {
+    *      blob <- createBlobT
+    *      _ <- ob.consumeWith(blob.upload())
+    *    } yield ()
+    *
+    *    t.runToFuture()
+    */
   def upload(metadata: Option[GcsBlobInfo.Metadata] = None,
              chunkSize: Int = 4096,
              options: List[BlobWriteOption] = List.empty[BlobWriteOption]): GcsUploader = {

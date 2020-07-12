@@ -25,6 +25,12 @@ class GcsBucket private (underlying: Bucket)
   self =>
 
   /**
+   * Checks if this bucket exists.
+   */
+  def exists(options: BucketSourceOption*): Task[Boolean] =
+    Task(underlying.exists(options: _*))
+
+  /**
     * Downloads a Blob from GCS, returning an [[Observable]] containing the bytes in chunks of length chunkSize.
     *
     * == Example ==
@@ -32,7 +38,7 @@ class GcsBucket private (underlying: Bucket)
     * {{{
     *   import monix.connect.google.cloud.storage.configuration.GcsBucketInfo.Locations
     *   import monix.connect.google.cloud.storage.{GcsBucket, GcsStorage}
-   *
+    *
     *   val storage = GcsStorage(underlying)
     *   val bucket: Task[GcsBucket] = storage.createBucket("myBucket", Locations.`EUROPE-WEST3`)
     *
@@ -53,58 +59,54 @@ class GcsBucket private (underlying: Bucket)
     *
     * Example:
     * {{{
-    *    import java.io.File
+    *   import java.io.File
     *
-    *    import monix.connect.google.cloud.storage.{GcsStorage, GcsBucket}
-    *    import monix.execution.Scheduler.Implicits.global
-    *    import monix.eval.Task
+    *   import monix.connect.google.cloud.storage.{GcsStorage, GcsBucket}
+    *   import monix.eval.Task
     *
-    *    val storage: GcsStorage = GcsStorage.create()
-    *    val getBlobT: Task[Option[GcsBucket]] = storage.getBucket("myBucket")
-    *    val file: File = new File("path/to/your/path.txt")
-    *    val t: Task[Unit] = {
-    *      for {
-    *        maybeBlob <- getBlobT
-    *        _ <- maybeBlob match {
-    *          case Some(blob) => blob.downloadToFile("myBlob", file.toPath)
-    *          case None => Task.unit
-    *        }
-    *      } yield ()
+    *   val storage = GcsStorage.create()
+    *   val getBucketT: Task[Option[GcsBlob]] = storage.getBlob("myBucket", "myBlob")
+    *   val targetFile = new File("path/to/your/path.txt")
+    *   val t: Task[Unit] = {
+    *     for {
+    *       maybeBucket <- getBucketT
+    *       _ <- maybeBucket match {
+    *         case Some(bucket) => bucket.downloadToFile(targetFile.toPath)
+    *         case None => Task.unit
+    *       }
+    *     } yield ()
     *    }
+    *
+    *    t.runToFuture()
     * }}}
     */
   def downloadToFile(blobName: String, path: Path, chunkSize: Int = 4096): Task[Unit] = {
     val blobId = BlobId.of(underlying.getName, blobName)
     (for {
-      bos   <- openFileOutputStream(path)
+      bos <- openFileOutputStream(path)
       bytes <- download(underlying.getStorage, blobId, chunkSize)
     } yield bos.write(bytes)).completedL
   }
 
   /**
-    * Returns a new Consumer that will upload bytes to the specified target Blob.
+    * Provides a pre-built [[monix.reactive.Consumer]] implementation from [[GcsUploader]]
+    * for uploading data to [[self]] Blob.
     *
     * Example:
     * {{{
-    *   import java.nio.charset.StandardCharsets
+    *   import monix.connect.google.cloud.storage.{GcsStorage, GcsBucket}
+    *   import monix.eval.Task
     *
-    *   import monix.reactive.Observable
-    *   import monix.connect.gcs.{Storage, Bucket}
+    *   val storage = GcsStorage.create()
+    *   val createBucketT: Task[GcsBucket] = storage.createBucket("myBucket", GcsBucketInfo.Locations.`EUROPE-WEST1`).memoize
     *
-    *   val config = BucketConfig(
-    *      name = "mybucket"
-    *   )
+    *   val ob: Observable[Array[Byte]] = ???
+    *   val t: Task[Unit] = for {
+    *     bucket <- createBucketT
+    *     _ <- ob.consumeWith(bucket.upload("myBlob"))
+    *   } yield ()
     *
-    *   val storage: Task[Storage] = Storage.create().memoize
-    *   val bucket: Task[Bucket] = storage.flatMap(_.createBucket(config)).memoize
-    *
-    *   val data = "mydata".getBytes(StandardCharsets.UTF_8)
-    *
-    *   for {
-    *     b <- bucket
-    *     c <- b.upload("mydata")
-    *     _ <- Observable.fromIterable(data).consumeWith(c)
-    *   } println("Uploaded Data Successfully")
+    *   t.runToFuture()
     * }}}
     */
   def upload(name: String,
@@ -120,17 +122,22 @@ class GcsBucket private (underlying: Bucket)
     *
     * Example:
     * {{{
-    *   import java.nio.file.Paths
+    *   import java.io.File
     *
-    *   import monix.reactive.Observable
-    *   import monix.connect.gcs.{GcsStorage, GcsBucket}
+    *   import monix.execution.Scheduler.Implicits.global
+    *   import monix.connect.google.cloud.storage.{GcsStorage, GcsBucket}
+    *   import monix.eval.Task
     *
-    *   val config = BucketConfig(name = "mybucket")
+    *   val storage = GcsStorage.create()
+    *   val createBucketT: Task[GcsBucket] = storage.createBucket("myBucket", GcsBucketInfo.Locations.`US-WEST1`)
+    *   val sourceFile = new File("path/to/your/path.txt")
     *
-    *   val storage: GcsStorage = GcsStorage.create()
-    *   val bucket: GcsBucket = storage.createBucket(config))
+    *   val t: Task[Unit] = for {
+    *     bucket <- createBucketT
+    *     unit <- bucket.uploadFromFile("myBlob", sourceFile.toPath)
+    *   } yield ()
     *
-    *   bucket.uploadFromFile("blob1", Paths.get("file.txt")).runToFuture()
+    *  t.runToFuture()
     * }}}
     */
   def uploadFromFile(blobName: String,
@@ -144,12 +151,6 @@ class GcsBucket private (underlying: Bucket)
         .consumeWith(GcsUploader(self.getStorage, blobInfo, chunkSize, options))
     }
   }
-
-  /**
-    * Checks if this bucket exists.
-    */
-  def exists(options: BucketSourceOption*): Task[Boolean] =
-    Task(underlying.exists(options: _*))
 
   /** Reloads and refreshes this buckets data, returning a new Bucket instance. */
   def reload(options: BucketSourceOption*): Task[Option[GcsBucket]] =

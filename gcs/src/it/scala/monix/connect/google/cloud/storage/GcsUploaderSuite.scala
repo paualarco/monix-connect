@@ -66,11 +66,13 @@ class GcsUploaderSuite extends AnyWordSpecLike with IdiomaticMockito with Matche
         val content: Array[Byte] = nonEmptyString.sample.get.getBytes()
         val blob: Blob = storage.create(blobInfo, content)
         val gcsBlob = new GcsBlob(blob)
+        val uploader = GcsUploader(GcsStorage(storage), blobInfo)
+
 
         //when
         val downloader: Observable[Array[Byte]] = gcsBlob.download()
         val contentBefore: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
-        Observable.now(content).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+        Observable.now(content).consumeWith(uploader).runSyncUnsafe()
 
         //then
         val exists = gcsBlob.exists().runSyncUnsafe()
@@ -80,17 +82,18 @@ class GcsUploaderSuite extends AnyWordSpecLike with IdiomaticMockito with Matche
         r shouldBe content
       }
 
-      "the source observable is empty" in {
+      "the consumed observable is empty" in {
         //given
-        val blobPath = nonEmptyString.sample.get
-        val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobPath)).build
+        val blobName = nonEmptyString.sample.get
+        val blobInfo: BlobInfo = BlobInfo.newBuilder(BlobId.of(testBucketName, blobName)).build
         val blob: Blob = storage.create(blobInfo)
         val gcsBlob = new GcsBlob(blob)
+        val uploader = GcsUploader(GcsStorage(storage), blobInfo)
 
         //when
         val downloader: Observable[Array[Byte]] = gcsBlob.download()
         val contentBefore: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
-        Observable.pure(Array.emptyByteArray).consumeWith(gcsBlob.upload()).runSyncUnsafe()
+        Observable.pure(Array.emptyByteArray).consumeWith(uploader).runSyncUnsafe()
 
         //then
         val r: Option[Array[Byte]] = downloader.headOptionL.runSyncUnsafe()
