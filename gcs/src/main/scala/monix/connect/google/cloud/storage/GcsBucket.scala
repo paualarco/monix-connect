@@ -57,7 +57,8 @@ class GcsBucket private (underlying: Bucket)
   /**
     * Allows downloading a Blob from GCS directly to the specified file.
     *
-    * Example:
+    * == Example ==
+    *
     * {{{
     *   import java.io.File
     *
@@ -76,8 +77,6 @@ class GcsBucket private (underlying: Bucket)
     *       }
     *     } yield ()
     *    }
-    *
-    *    t.runToFuture()
     * }}}
     */
   def downloadToFile(blobName: String, path: Path, chunkSize: Int = 4096): Task[Unit] = {

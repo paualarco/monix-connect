@@ -80,7 +80,6 @@ private[storage] final class GcsBlob(val underlying: Blob)
    *     } yield ()
    *   }
    *
-   *   t.runToFuture()
    * }}}
    */
   def downloadToFile(path: Path, chunkSize: Int = 4096): Task[Unit] = {
@@ -119,8 +118,6 @@ private[storage] final class GcsBlob(val underlying: Blob)
    *      bucket <- createBucketT
    *      unit <- bucket.uploadFromFile("myBlob", sourceFile.toPath)
    *    } yield ()
-   *
-   *    t.runToFuture()
    * }}}
    */
   def uploadFromFile(path: Path,
@@ -135,20 +132,24 @@ private[storage] final class GcsBlob(val underlying: Blob)
   }
 
   /**
+    * A pre-built [[monix.reactive.Consumer]] implementation from [[GcsUploader]]
+    * for uploading data to [[self]] Blob.
     *
-    *    import monix.connect.google.cloud.storage.{GcsStorage, GcsBlob}
-    *    import monix.eval.Task
+    *  == Example ==
     *
-    *    val storage = GcsStorage.create()
-    *    val createBlobT: Task[GcsBlob] = storage.createBlob("myBucket", "myBlob").memoize
+    * {{{
+    *   import monix.connect.google.cloud.storage.{GcsStorage, GcsBlob}
+    *   import monix.eval.Task
     *
-    *    val ob: Observable[Array[Byte]] = ???
-    *    val t: Task[Unit] = for {
-    *      blob <- createBlobT
-    *      _ <- ob.consumeWith(blob.upload())
-    *    } yield ()
+    *   val storage = GcsStorage.create()
+    *   val createBlobT: Task[GcsBlob] = storage.createBlob("myBucket", "myBlob").memoize
     *
-    *    t.runToFuture()
+    *   val ob: Observable[Array[Byte]] = ???
+    *   val t: Task[Unit] = for {
+    *     blob <- createBlobT
+    *     _ <- ob.consumeWith(blob.upload())
+    *   } yield ()
+    * }}}
     */
   def upload(metadata: Option[GcsBlobInfo.Metadata] = None,
              chunkSize: Int = 4096,

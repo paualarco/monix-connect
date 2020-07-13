@@ -42,14 +42,14 @@ class ParquetSubscriber[T](parquetWriter: ParquetWriter[T]) extends Consumer.Syn
       var nElements: Long = 0
       override def onNext(record: T): Ack = {
         try {
-            parquetWriter.write(record)
-            nElements = nElements + 1
-            monix.execution.Ack.Continue
-          } catch {
-            case ex if NonFatal(ex) => {
-              onError(ex)
-              Ack.Stop
-            }
+          parquetWriter.write(record)
+          nElements = nElements + 1
+          monix.execution.Ack.Continue
+        } catch {
+          case ex if NonFatal(ex) => {
+            onError(ex)
+            Ack.Stop
+          }
         }
       }
 
