@@ -9,6 +9,7 @@ object Dependencies {
     val AWS = "1.11.749"
     val Cats_Effect = "2.1.3"
     val DynamoDb = "2.10.60"
+    val SQS = "2.13.33"
     val GCS = "1.107.0"
     val Hadoop = "3.1.4"
     val Monix = "3.2.0"
@@ -26,7 +27,7 @@ object Dependencies {
 
   private def commonDependencies(hasIntegrationTest: Boolean = false): Seq[sbt.ModuleID] = {
     val common: Seq[ModuleID] = CommonProjectDependencies ++ CommonTestDependencies.map(_ % Test)
-    if (hasIntegrationTest) common ++ CommonTestDependencies.map(_ % IntegrationTest)
+    if (hasIntegrationTest) common ++ CommonTestDependencies.map(_                        % IntegrationTest)
     else common
   }
 
@@ -84,6 +85,13 @@ object Dependencies {
   val Redis = Seq(
     "io.lettuce" % "lettuce-core" % "5.1.8.RELEASE"
   ) ++ commonDependencies(hasIntegrationTest = true)
+  val Sqs =
+    SqsDependecies ++ CommonProjectDependencies ++ CommonTestDependencies.map(_ % Test) ++ CommonTestDependencies.map(
+      _                                                                         % IntegrationTest)
+  private val SqsDependecies = Seq(
+    "software.amazon.awssdk" % "sqs" % DependencyVersions.SQS
+  )
+
 
   val GCS = Seq(
     "com.google.cloud"   % "google-cloud-storage" % Versions.GCS,
