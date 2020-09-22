@@ -120,9 +120,11 @@ lazy val monixConnect = (project in file("."))
   .configs(IntegrationTest, IT)
   .settings(sharedSettings)
   .settings(name := "monix-connect")
-  .aggregate(akka, dynamodb, parquet, gcs, hdfs, mongodb, redis, s3, awsAuth)
-  .dependsOn(akka, dynamodb, parquet, gcs, hdfs, mongodb, redis, s3)
+  .aggregate(akka, dynamodb, gcs, hdfs, mongodb, parquet, redis, s3, mysql)
+  .dependsOn(akka, dynamodb, gcs, hdfs, mongodb, parquet, redis, s3)
 
+lazy val mysql = monixConnector("mysql", Dependencies.MySql)
+  .settings(resolvers += "spring-milestone" at "https://repo.spring.io/milestone")
 
 lazy val akka = monixConnector("akka", Dependencies.Akka)
 
