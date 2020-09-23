@@ -1,4 +1,5 @@
 import sbt.Keys.version
+import pl.project13.scala.sbt.JmhPlugin
 
 val monixConnectSeries = "0.4.0"
 
@@ -125,6 +126,7 @@ lazy val monixConnect = (project in file("."))
 
 lazy val mysql = monixConnector("mysql", Dependencies.MySql)
   .settings(resolvers += "spring-milestone" at "https://repo.spring.io/milestone")
+  .enablePlugins(JmhPlugin)
 
 lazy val akka = monixConnector("akka", Dependencies.Akka)
 
