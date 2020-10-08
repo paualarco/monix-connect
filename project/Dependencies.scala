@@ -12,7 +12,7 @@ object Dependencies {
     val SQS = "2.13.33"
     val GCS = "1.107.0"
     val Hadoop = "3.1.4"
-    val Monix = "3.2.0"
+    val Monix = "3.2.2"
     val MongoScala = "2.9.0"
     val MongoReactiveStreams = "4.1.0"
     val S3 = "2.14.21"
@@ -85,13 +85,9 @@ object Dependencies {
   val Redis = Seq(
     "io.lettuce" % "lettuce-core" % "5.1.8.RELEASE"
   ) ++ commonDependencies(hasIntegrationTest = true)
-  val Sqs =
-    SqsDependecies ++ CommonProjectDependencies ++ CommonTestDependencies.map(_ % Test) ++ CommonTestDependencies.map(
-      _                                                                         % IntegrationTest)
-  private val SqsDependecies = Seq(
-    "software.amazon.awssdk" % "sqs" % DependencyVersions.SQS
-  )
 
+  val Sqs = Seq("software.amazon.awssdk" % "sqs" % Versions.SQS,
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2") ++ commonDependencies(hasIntegrationTest = true)
 
   val GCS = Seq(
     "com.google.cloud"   % "google-cloud-storage" % Versions.GCS,

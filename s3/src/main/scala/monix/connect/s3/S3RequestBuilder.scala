@@ -55,9 +55,7 @@ import scala.collection.JavaConverters._
 @InternalApi
 private[s3] object S3RequestBuilder {
 
-  /**
-    * A builder for [[DeleteBucketRequest]]
-    */
+  /** A builder for [[DeleteBucketRequest]]. */
   def deleteBucket(bucket: String): DeleteBucketRequest = {
     DeleteBucketRequest
       .builder()

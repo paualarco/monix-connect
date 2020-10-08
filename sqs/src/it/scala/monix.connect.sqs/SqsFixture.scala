@@ -1,7 +1,12 @@
 package monix.connect.sqs
 
+import java.net.URI
+
 import org.scalacheck.Gen
 import org.scalatest.TestSuite
+import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model._
 
 import scala.collection.JavaConverters._
@@ -11,6 +16,8 @@ trait SqsFixture {
 
   val genQueueUrl: Gen[String] =
     Gen.nonEmptyListOf(Gen.alphaChar).map(chars => "test-" + chars.mkString.take(200)).sample.get
+
+  val genString = Gen.nonEmptyListOf(Gen.alphaChar).map(chars => "test-" + chars.mkString.take(10))
 
   val genQueueName: Gen[String] = Gen.nonEmptyListOf(Gen.alphaChar).map(chars => "test-" + chars.mkString.take(200))
 
@@ -54,10 +61,17 @@ trait SqsFixture {
       .delaySeconds(0)
       .build()
 
+  def genSendMessageRequest: (String) => Gen[SendMessageRequest] = { queueUrl =>
+    genString.flatMap(body => sendMessageRequest(queueUrl, body))
+  }
+
   def receiveMessageRequest(queueUrl: String): ReceiveMessageRequest =
     ReceiveMessageRequest.builder().queueUrl(queueUrl).build()
 
   def deleteMessageRequest(queueUrl: String, message: Message): DeleteMessageRequest =
     DeleteMessageRequest.builder().queueUrl(queueUrl).receiptHandle(message.receiptHandle()).build()
+
+  protected def getQueueUrl(queueName: String) = "http://localhost:4566/queue/" + queueName
+
 
 }

@@ -17,49 +17,51 @@
 
 package monix.connect.sqs
 
-import com.typesafe.scalalogging.StrictLogging
-import monix.connect.sqs.SqsOp.Implicits.sendMessage
-import monix.connect.sqs.domain.BatchMessageEntry
 import monix.eval.Task
 import monix.execution.cancelables.AssignableCancelable
 import monix.execution.{Ack, Callback, Scheduler}
-import monix.reactive.Consumer
 import monix.reactive.observers.Subscriber
+import monix.reactive.Consumer
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
-import software.amazon.awssdk.services.sqs.model.{MessageAttributeValue, MessageSystemAttributeNameForSends, MessageSystemAttributeValue, SendMessageBatchRequest, SendMessageRequest, SqsRequest, SqsResponse}
+import software.amazon.awssdk.services.sqs.model.{MessageAttributeValue, MessageSystemAttributeNameForSends, MessageSystemAttributeValue, SendMessageBatchRequest, SqsRequest, SqsResponse}
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
+import monix.connect.sqs.SqsOp.Implicits.sendMessageBatch
+import monix.connect.sqs.domain.BatchMessageEntry
+
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
-private[sqs] class SqsSink(
+private[sqs] class SqsBatchSink(
   queueUrl: String,
   groupId: String,
+  delay: FiniteDuration,
   systemAttributes: Map[MessageSystemAttributeNameForSends, MessageSystemAttributeValue],
   attributes: Map[String, MessageAttributeValue])(
   implicit
   client: SqsAsyncClient)
-  extends Consumer[String, Unit] with StrictLogging {
+  extends Consumer[List[BatchMessageEntry], Unit] with StrictLogging {
 
-  private[this] def sendRequest(message: String): SendMessageRequest =
-    SqsRequestBuilder.sendMessageRequest(queueUrl, None, groupId, attributes, systemAttributes)(message, None)
+  private[this] def batchRequest(messages: List[BatchMessageEntry]): SendMessageBatchRequest =
+    SqsRequestBuilder.sendBatchMessage(queueUrl, delay, groupId, attributes, systemAttributes)(messages)
 
   override def createSubscriber(
     cb: Callback[Throwable, Unit],
-    s: Scheduler): (Subscriber[String], AssignableCancelable) = {
-    val sub = new Subscriber[String] { self =>
+    s: Scheduler): (Subscriber[List[BatchMessageEntry]], AssignableCancelable) = {
+    val sub = new Subscriber[List[BatchMessageEntry]] { self =>
 
       implicit val scheduler = s
       var batch: Seq[String] = List.empty[String]
       private[this] var isActive = true
 
-      def onNext(message: String): Future[Ack] = {
+      def onNext(messages: List[BatchMessageEntry]): Future[Ack] = {
        self.synchronized {
          if (isActive) {
-           println("Received message: " + message)
            Task
-             .from(SqsOp.create(sendRequest(message))(sendMessage, client))
+             .from(SqsOp.create(batchRequest(messages))(sendMessageBatch, client))
              .redeem(ex => {
-               println("Unexpected error in SqsSink. ", ex)
+               logger.error("Unexpected error in SqsSink. ", ex)
                Ack.Continue
              }, _ => Ack.Continue)
              .runToFuture(scheduler)
@@ -75,7 +77,6 @@ private[sqs] class SqsSink(
             isActive = false
             try {
               client.close()
-              cb
             } catch {
               case NonFatal(ex) =>
                 logger.error("Error closing the SqsClient.", ex)
@@ -97,16 +98,15 @@ private[sqs] class SqsSink(
 
 }
 
-
-object SqsSink {
-  import scala.concurrent.duration._
+object SqsBatchSink {
+import scala.concurrent.duration._
   def apply[In <: SqsRequest, Out <: SqsResponse](
-                                                   queueUrl: String,
-                                                   groupId: String,
-                                                   systemAttributes: Map[MessageSystemAttributeNameForSends, MessageSystemAttributeValue] = Map.empty,
-                                                   attributes: Map[String, MessageAttributeValue] = Map.empty
-                                                 )(implicit client: SqsAsyncClient): Consumer[String, Unit] =
-    new SqsSink(queueUrl, groupId, systemAttributes, attributes)(client)
+    queueUrl: String,
+    groupId: String,
+    delay: FiniteDuration = 0.seconds,
+    systemAttributes: Map[MessageSystemAttributeNameForSends, MessageSystemAttributeValue] = Map.empty,
+    attributes: Map[String, MessageAttributeValue] = Map.empty
+  )(implicit client: SqsAsyncClient): Consumer[List[BatchMessageEntry], Unit] =
+    new SqsBatchSink(queueUrl, groupId, delay, systemAttributes, attributes)(client)
 
 }
-

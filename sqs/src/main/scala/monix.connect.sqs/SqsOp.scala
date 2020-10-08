@@ -20,45 +20,62 @@ package monix.connect.sqs
 import java.util.concurrent.CompletableFuture
 
 import monix.eval.Task
+import monix.reactive.Observable
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.{
   AddPermissionRequest,
   AddPermissionResponse,
+  ChangeMessageVisibilityBatchRequest,
+  ChangeMessageVisibilityBatchResponse,
   ChangeMessageVisibilityRequest,
   ChangeMessageVisibilityResponse,
   CreateQueueRequest,
   CreateQueueResponse,
+  DeleteMessageBatchRequest,
+  DeleteMessageBatchResponse,
   DeleteMessageRequest,
   DeleteMessageResponse,
   DeleteQueueRequest,
   DeleteQueueResponse,
+  GetQueueAttributesRequest,
+  GetQueueAttributesResponse,
   GetQueueUrlRequest,
   GetQueueUrlResponse,
+  ListDeadLetterSourceQueuesRequest,
+  ListDeadLetterSourceQueuesResponse,
+  ListQueueTagsRequest,
+  ListQueueTagsResponse,
   ListQueuesRequest,
   ListQueuesResponse,
+  PurgeQueueRequest,
+  PurgeQueueResponse,
   ReceiveMessageRequest,
   ReceiveMessageResponse,
+  RemovePermissionRequest,
+  RemovePermissionResponse,
   SendMessageBatchRequest,
   SendMessageBatchResponse,
   SendMessageRequest,
   SendMessageResponse,
+  SetQueueAttributesRequest,
+  SetQueueAttributesResponse,
   SqsRequest,
-  SqsResponse
+  SqsResponse,
+  TagQueueRequest,
+  TagQueueResponse,
+  UntagQueueRequest,
+  UntagQueueResponse
 }
 
 import scala.concurrent.duration.FiniteDuration
 
 trait SqsOp[In <: SqsRequest, Out <: SqsResponse] {
-  def apply(sqsRequest: In)(implicit client: SqsAsyncClient): Task[Out] =
-    Task.defer(Task.from(execute(sqsRequest)))
-
-  def execute(sqsRequest: In)(implicit client: SqsAsyncClient): CompletableFuture[Out]
+  def execute(sqsRequest: In)(implicit client: SqsAsyncClient): Task[Out]
 }
 
 object SqsOp {
 
   object Implicits {
-
     implicit val addPermission = SqsOpFactory.build[AddPermissionRequest, AddPermissionResponse](_.addPermission(_))
     implicit val createQueue = SqsOpFactory.build[CreateQueueRequest, CreateQueueResponse](_.createQueue(_))
     implicit val deleteMessage = SqsOpFactory.build[DeleteMessageRequest, DeleteMessageResponse](_.deleteMessage(_))
@@ -71,22 +88,9 @@ object SqsOp {
       SqsOpFactory.build[SendMessageBatchRequest, SendMessageBatchResponse](_.sendMessageBatch(_))
     implicit val changeMessageVisibility =
       SqsOpFactory.build[ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse](_.changeMessageVisibility(_))
-
-    private[this] object SqsOpFactory {
-      def build[Req <: SqsRequest, Resp <: SqsResponse](
-        operation: (SqsAsyncClient, Req) => CompletableFuture[Resp]): SqsOp[Req, Resp] = {
-        new SqsOp[Req, Resp] {
-          def execute(request: Req)(
-            implicit
-            client: SqsAsyncClient): CompletableFuture[Resp] = {
-            operation(client, request)
-          }
-        }
-      }
-    }
   }
 
-  final def create[In <: SqsRequest, Out <: SqsResponse](
+  def create[In <: SqsRequest, Out <: SqsResponse](
     request: In,
     retries: Int = 0,
     delayAfterFailure: Option[FiniteDuration] = None)(
@@ -95,9 +99,8 @@ object SqsOp {
     client: SqsAsyncClient): Task[Out] = {
 
     require(retries >= 0, "Retries per operation must be higher or equal than 0.")
-
     Task
-      .defer(sqsOp(request))
+      .from(sqsOp.execute(request))
       .onErrorHandleWith { ex =>
         val t = Task
           .defer(
@@ -109,4 +112,13 @@ object SqsOp {
         }
       }
   }
+
+  def transformer[In <: SqsRequest, Out <: SqsResponse](
+    implicit
+    sqsOp: SqsOp[In, Out],
+    client: SqsAsyncClient): Observable[In] => Observable[Task[Out]] = { inObservable: Observable[In] =>
+    inObservable.map(in => Task.from(sqsOp.execute(in)))
+  }
+
+
 }

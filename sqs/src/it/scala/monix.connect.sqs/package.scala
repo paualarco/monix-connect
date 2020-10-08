@@ -17,17 +17,11 @@ package object sqs {
     }
   }
 
-  object SqsClient {
-    def apply(): SqsAsyncClient = {
-
-      val defaultAwsCredProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("x", "x"))
-      SqsAsyncClient
-        .builder()
-        .credentialsProvider(defaultAwsCredProvider)
-        .endpointOverride(new URI("http://localhost:4576"))
-        .region(Region.US_EAST_1)
-        .build()
-    }
-  }
-
+  val defaultAwsCredProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("x", "x"))
+  implicit val asyncClient = SqsAsyncClient
+    .builder()
+    .credentialsProvider(defaultAwsCredProvider)
+    .endpointOverride(new URI("http://localhost:4566"))
+    .region(Region.US_EAST_1)
+    .build()
 }

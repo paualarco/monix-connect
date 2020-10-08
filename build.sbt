@@ -147,6 +147,8 @@ lazy val redis = monixConnector("redis", Dependencies.Redis)
 
 lazy val s3 = monixConnector("s3", Dependencies.S3)
 
+lazy val sqs = monixConnector("sqs", Dependencies.Sqs)
+
 lazy val gcs = monixConnector("gcs", Dependencies.GCS)
 
 def monixConnector(
