@@ -1,7 +1,8 @@
 package monix.connect.sqs
 
-import scala.concurrent.duration.FiniteDuration
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName
 
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
 package object domain {
@@ -19,7 +20,7 @@ package object domain {
     * @param autoDelete
     * @param stopWhenQueueEmpty
     */
-  case class SqsSourceSettings(attributeNames: List[String] = List.empty,
+  case class SqsSourceSettings(attributeNames: List[QueueAttributeName] = List.empty,
                                maxNumberOfMessages: Int = 1,
                                pollInterval: FiniteDuration = 0.seconds,
                                messageAttributeNames: List[String] = List.empty,

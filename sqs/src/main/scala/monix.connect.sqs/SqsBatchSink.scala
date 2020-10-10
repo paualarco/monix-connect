@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import monix.connect.sqs.SqsOp.Implicits.sendMessageBatch
-import monix.connect.sqs.domain.BatchMessageEntry
+import monix.connect.sqs.domain.{BatchMessageEntry, SqsClientConfig}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -43,6 +43,7 @@ private[sqs] class SqsBatchSink(
   client: SqsAsyncClient)
   extends Consumer[List[BatchMessageEntry], Unit] with StrictLogging {
 
+  SqsClientConfig()
   private[this] def batchRequest(messages: List[BatchMessageEntry]): SendMessageBatchRequest =
     SqsRequestBuilder.sendBatchMessage(queueUrl, delay, groupId, attributes, systemAttributes)(messages)
 

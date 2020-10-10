@@ -9,7 +9,7 @@ object Dependencies {
     val AWS = "1.11.749"
     val Cats_Effect = "2.1.3"
     val DynamoDb = "2.10.60"
-    val SQS = "2.13.33"
+    val SQS = "2.15.7"
     val GCS = "1.107.0"
     val Hadoop = "3.1.4"
     val Monix = "3.2.2"
@@ -87,6 +87,7 @@ object Dependencies {
   ) ++ commonDependencies(hasIntegrationTest = true)
 
   val Sqs = Seq("software.amazon.awssdk" % "sqs" % Versions.SQS,
+    "com.github.pureconfig" %% "pureconfig" % "0.14.0",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2") ++ commonDependencies(hasIntegrationTest = true)
 
   val GCS = Seq(

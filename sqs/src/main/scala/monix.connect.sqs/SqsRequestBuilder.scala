@@ -13,10 +13,11 @@ object SqsRequestBuilder {
   def receiveRequest(queueUrl: String, sqsSourceSettings: SqsSourceSettings = domain.DefaultSourceSettings) = {
     ReceiveMessageRequest.builder
       .queueUrl(queueUrl)
-      .attributeNamesWithStrings(sqsSourceSettings.attributeNames.asJava)
+      .attributeNames(sqsSourceSettings.attributeNames.asJava)
       .messageAttributeNames(sqsSourceSettings.messageAttributeNames.asJava)
       .maxNumberOfMessages(sqsSourceSettings.maxNumberOfMessages)
       .waitTimeSeconds(sqsSourceSettings.waitTimeSeconds.toSeconds.toInt)
+      .receiveRequestAttemptId("")
       .visibilityTimeout(sqsSourceSettings.visibilityTimeout.toSeconds.toInt).build()
   }
 

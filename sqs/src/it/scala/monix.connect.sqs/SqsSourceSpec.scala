@@ -19,7 +19,7 @@ class SqsSourceSpec extends AnyFlatSpecLike with Matchers with ScalaFutures with
   val queueName: String = genQueueName.sample.get
   val queueUrl = getQueueUrl(queueName)
 
-  s"${SqsSource}.apply" should "consume from the specified sqs queue" in {
+  s"SqsSource" should "consume from the specified sqs queue" in {
     //given
     val n = 5
 

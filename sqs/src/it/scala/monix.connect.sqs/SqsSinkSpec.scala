@@ -1,6 +1,7 @@
 package monix.connect.sqs
 
 import monix.connect.sqs.SqsOp.Implicits._
+import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import org.scalatest.BeforeAndAfterEach
@@ -14,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 
 class SqsSinkSpec extends AnyFlatSpecLike with Matchers with ScalaFutures with SqsFixture with BeforeAndAfterEach {
 
-  implicit val defaultConfig: PatienceConfig = PatienceConfig(5.seconds, 300.milliseconds)
+  implicit val defaultConfig: PatienceConfig = PatienceConfig(10.seconds, 300.milliseconds)
 
   val queueName: String = "my-queue"//genQueueName.sample.get
   val queueUrl = getQueueUrl(queueName)
@@ -26,16 +27,17 @@ class SqsSinkSpec extends AnyFlatSpecLike with Matchers with ScalaFutures with S
 
     //when
     val getRequest = SqsRequestBuilder.receiveRequest(queueUrl)
-    val f = SqsOp.create(getRequest).runToFuture
+    //val f = SqsOp.create(getRequest).runToFuture
+    val f = SqsSource(queueUrl)(Task.coeval(coAsyncClient)).firstL.runToFuture
+
     //and
-    val t = Observable.fromIterable(List(body, body, body, body)).consumeWith(SqsSink(queueUrl, groupId))
+    val t = Observable.fromIterable(List(genMessageBody.sample.get, genMessageBody.sample.get)).consumeWith(SqsSink(queueUrl, groupId)(coAsyncClient.value()))
 
 
     //then
     whenReady(t.runToFuture) { r =>
       r shouldBe a[Unit]
       body shouldBe Await.result(f, Duration.Inf)
-      Observable.repeatEval()
       //SqsOp.create(getRequest).runSyncUnsafe()
       //body shouldBe f.value.get.get.messages()
     }
