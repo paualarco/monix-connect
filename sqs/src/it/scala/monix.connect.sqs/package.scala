@@ -43,7 +43,7 @@ package object sqs {
       .credentialsProvider(defaultAwsCredProvider)
       .endpointOverride(new URI("http://localhost:4566"))
       .region(Region.US_EAST_1)
-      .httpClient(httpClient).
+      .httpClient(httpClient)
       .build()
   }
 }

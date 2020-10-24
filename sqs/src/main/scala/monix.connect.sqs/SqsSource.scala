@@ -19,7 +19,7 @@ package monix.connect.sqs
 
 import cats.effect.Resource
 import monix.eval.Task
-import monix.reactive.{Consumer, Observable, Observer, OverflowStrategy}
+import monix.reactive.{ Observable, Observer}
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.{Message, MessageAttributeValue, MessageSystemAttributeNameForSends, MessageSystemAttributeValue, ReceiveMessageRequest, SendMessageRequest, SqsRequest, SqsResponse}
 import monix.connect.sqs.domain.{DefaultSourceSettings, SqsSourceSettings}
@@ -30,21 +30,17 @@ import monix.connect.sqs.SqsOp.Implicits._
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
-private[sqs] class SqsSource(queueUrl: String, settings: SqsSourceSettings, asyncClient: Task[SqsAsyncClient])
+private[sqs] class SqsSource(queueUrl: String, settings: SqsSourceSettings, asyncClient: SqsAsyncClient)
   extends Observable[Message] {
 
-  override def unsafeSubscribeFn(out: Subscriber[Message]): Cancelable = {
+  override def unsafeSubscribeFn(out: Subscriber[Message]): Cancelable =
+    runLoop(out, asyncClient).runToFuture(out.scheduler)
 
-    Resource
-      .make(acquire = asyncClient)(release = client => Task(client.close()))
-      .use(client => runLoop(out, client))
-      .runToFuture(out.scheduler)
-  }
   val receiveRequest = SqsRequestBuilder.receiveRequest(queueUrl, SqsSourceSettings(maxNumberOfMessages = 1))
 
   def runLoop(out: Subscriber[Message], client: SqsAsyncClient): Task[Unit] = {
     for {
-      ack <- ackTask(receiveRequest, out, client)
+      ack <- ackTask(out, client)
       _ <- ack match {
         case Ack.Stop => {
           println("Ack stop")
@@ -62,19 +58,19 @@ private[sqs] class SqsSource(queueUrl: String, settings: SqsSourceSettings, asyn
     out.onError(ex)
   }
 
-  def ackTask(request: ReceiveMessageRequest, subscriber: Subscriber[Message], client: SqsAsyncClient): Task[Ack] = {
+  def ackTask(subscriber: Subscriber[Message], client: SqsAsyncClient): Task[Ack] = {
     for {
-      response <- asyncClient.flatMap(client => Task.from(client.receiveMessage(request)))
+      response <- Task.from(client.receiveMessage(receiveRequest))
       feed <- {
         Task.create[Ack] { (scheduler, cb) =>
           val f = Observer.feed(subscriber, response.messages.asScala)(scheduler)
           f.onComplete {
             case Success(ack) => {
-              println(s"Success message sent: ${ack}")
+              println(s"Success received: ${ack}")
               cb.onSuccess(ack)
             }
             case Failure(ex) => {
-              println("Error message sent")
+              println("Error on received message")
               cb.onError(ex)
             }
           }(scheduler)
@@ -89,5 +85,10 @@ object SqsSource {
   def apply(
     queueUrl: String,
     settings: SqsSourceSettings = DefaultSourceSettings)(
-    implicit sqsAsyncClient: Task[SqsAsyncClient]): SqsSource = new SqsSource(queueUrl, settings, sqsAsyncClient)
+    implicit sqsAsyncClient: SqsAsyncClient): Observable[Message] = {
+    for {
+      asyncClient <- Observable.resource(Task.now(sqsAsyncClient))(sqsClient => Task(sqsClient.close()))
+      source <- new SqsSource(queueUrl, settings, asyncClient)
+    } yield source
+  }
 }

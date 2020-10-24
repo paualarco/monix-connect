@@ -17,27 +17,28 @@ class SqsSinkSpec extends AnyFlatSpecLike with Matchers with ScalaFutures with S
 
   implicit val defaultConfig: PatienceConfig = PatienceConfig(10.seconds, 300.milliseconds)
 
-  val queueName: String = "my-queue"//genQueueName.sample.get
+  val queueName: String = s"my-queue${genQueueName.sample.get}"
   val queueUrl = getQueueUrl(queueName)
 
   s"${SqsSink}.sink()" should "sink a single `SendMessageRequest` and materialize to `Unit`" in {
     //given
     val body: String = genMessageBody.sample.get
+    println("Generateds messafe: " + body)
     val groupId: String = "1234"//genMessageBody.sample.get
 
     //when
-    val getRequest = SqsRequestBuilder.receiveRequest(queueUrl)
+    //val getRequest = SqsRequestBuilder.receiveRequest(queueUrl)
     //val f = SqsOp.create(getRequest).runToFuture
-    val f = SqsSource(queueUrl)(Task.coeval(coAsyncClient)).firstL.runToFuture
+    val f = SqsSource(queueUrl)(coAsyncClient.value()).headL.runToFuture
 
     //and
-    val t = Observable.fromIterable(List(genMessageBody.sample.get, genMessageBody.sample.get)).consumeWith(SqsSink(queueUrl, groupId)(coAsyncClient.value()))
+    val t = Observable.now(body).consumeWith(SqsSink(queueUrl, groupId)(coAsyncClient.value()))
 
 
     //then
     whenReady(t.runToFuture) { r =>
       r shouldBe a[Unit]
-      body shouldBe Await.result(f, Duration.Inf)
+      body shouldBe Await.result(f, Duration.Inf).body()
       //SqsOp.create(getRequest).runSyncUnsafe()
       //body shouldBe f.value.get.get.messages()
     }
