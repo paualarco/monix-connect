@@ -15,11 +15,28 @@
  * limitations under the License.
  */
 
-package moni
+package monix.connect.mysql
 
-import dev.miku.r2dbc.mysql.{MySqlConnectionConfiguration, MySqlConnectionFactory}
-import dev.miku.r2dbc.mysql.constant.ZeroDateOption
-import io.r2dbc.spi.ConnectionFactory
+import io.r2dbc.spi.{Connection, ConnectionFactory}
 import monix.eval.Task
 
-trait ReactiveMysql {}
+package object mysql {
+
+  case class Person(id: String, fist_name: String)
+
+  case class Query(sql: String) {
+    def run(cf: ConnectionFactory) = {
+      for {
+        conn <- Task.fromReactivePublisher(cf.create())
+        result <- Task.fromReactivePublisher {
+          conn.get.createStatement(sql).execute()
+        }
+      } yield result.get
+    }
+
+    def run(connection: Connection) = {
+      Task.fromReactivePublisher(connection.createStatement(sql).execute()).map(_.get)
+    }
+  }
+
+}

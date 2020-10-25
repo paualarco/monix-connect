@@ -19,8 +19,8 @@ package monix.connect.mysql
 
 import java.util.function.BiFunction
 
-import io.r2dbc.spi.{ConnectionFactory, Row, RowMetadata}
-import monix.connect.mysql.moni.Person
+import io.r2dbc.spi.{Connection, ConnectionFactory, Row, RowMetadata}
+import monix.connect.mysql.mysql.Person
 import monix.eval.Task
 
 import scala.compat.java8.FunctionConverters._
@@ -42,12 +42,12 @@ class Condition(select: Select, val condition: String) {
       (row, rowMetadata) => {
         val idMetadata = rowMetadata.getColumnMetadata("id").getJavaType
         val firstNameMetadata = rowMetadata.getColumnMetadata("first_name").getJavaType
-        Person(row.get("id", classOf[Int]), row.get("first_name", classOf[String]))
+        Person(row.get("id", classOf[String]), row.get("first_name", classOf[String]))
       }
     f.asJava
   }
 
-  def run(cf: ConnectionFactory) = {
+  def run(cf: ConnectionFactory): Task[Person] = {
     for {
       conn <- Task.fromReactivePublisher(cf.create())
       result <- Task.fromReactivePublisher {
@@ -55,6 +55,11 @@ class Condition(select: Select, val condition: String) {
       }
       r <- Task.fromReactivePublisher { result.get.map(biFunction) }.map(_.get)
     } yield r
+  }
+
+  def run(connection: Connection): Task[Person] = {
+    Task.fromReactivePublisher(connection.createStatement(generateStatement).execute())
+      .flatMap(result => Task.fromReactivePublisher { result.get.map(biFunction) }.map(_.get))
   }
 
 }

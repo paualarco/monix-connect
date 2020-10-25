@@ -56,7 +56,7 @@ object Dependencies {
     "com.lightbend.akka" %% "akka-stream-alpakka-s3" % "2.0.2") ++ testDependencies(hasIt = false)
 
   val MySql = Seq( "dev.miku" % "r2dbc-mysql" % "0.8.2.RELEASE"
-  ) ++ commonDependencies(hasIntegrationTest = false)
+  ) ++ testDependencies(hasIt = false)
 
   val DynamoDb = Seq(
     "com.amazonaws"          % "aws-java-sdk-core" % Versions.AWS,
