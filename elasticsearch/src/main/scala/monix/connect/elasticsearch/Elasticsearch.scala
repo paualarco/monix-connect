@@ -38,7 +38,7 @@ import monix.reactive.{Consumer, Observable}
 object Elasticsearch {
 
   /**
-   *
+    *
     * ==Example==
     *
     *{{{
