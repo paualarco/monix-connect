@@ -42,6 +42,7 @@ object Elasticsearch {
     * ==Example==
     *
     *{{{
+    * import cats.effect.Resource
     * import monix.connect.elasticsearch.Elasticsearch
     * import com.sksamuel.elastic4s.http.JavaClient
     * import com.sksamuel.elastic4s.{ElasticProperties, HttpClient}
@@ -50,8 +51,7 @@ object Elasticsearch {
     * import monix.eval.Task
     *
     * val uri = "http://localhost:9200"
-    * val esProps = ElasticProperties(uri) // here different options could be set
-    * val httpClient = create(JavaClient(esProps))
+    * val httpClient = JavaClient(ElasticProperties(uri)) // here different options could have been set
     * val resource: Resource[Task, Elasticsearch] = Elasticsearch.create(httpClient)
     * }}}
     *
