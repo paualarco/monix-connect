@@ -21,6 +21,14 @@
   color: #7c7c7c;
 }
 
+.navPusher {
+  background: #FFFFFF;
+}
+
+.hljs {
+  background: #F6F8FC;
+}
+
 .nav-footer .separator {
   width: 350px;
   margin: 0 auto;
@@ -30,6 +38,11 @@
 
 .mainContainer {
   padding-bottom: 0;
+}
+
+.postHeader .postHeaderTitle {
+    font-size: 51px;
+    font-family: 'Lobster',cursive;
 }
 
 .mainContainer .index {
@@ -57,10 +70,14 @@
   margin-bottom: 5px;
 }
 
+
+
+
+
 a {
-  color: #19647e;
+  color: #29A4D6;
 }
 
 .onPageNav a:hover {
-  color: #122932;
+  color: #E9F1FF;
 }

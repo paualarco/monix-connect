@@ -14,6 +14,9 @@
       "elasticsearch": {
         "title": "Elasticsearch"
       },
+      "es": {
+        "title": "Elasticsearch"
+      },
       "gcs": {
         "title": "Google Cloud Storage"
       },
